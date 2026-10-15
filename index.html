@@ -422,7 +422,7 @@ async function openCam(step) {
   show('cam');
   try {
     if (!S.stream) S.stream = await navigator.mediaDevices.getUserMedia({audio: false,
-      video: {facingMode: {ideal: 'environment'}, width: {ideal: 1920}, height: {ideal: 1080}}});
+      video: {facingMode: {ideal: 'environment'}, width: {ideal: 3840}, height: {ideal: 2160}}});
     const v = $('#video'); v.srcObject = S.stream; await v.play();
     layout(); startLive();
   } catch (e) {
@@ -492,7 +492,37 @@ function liveTick() {
 
 // ---------------- take + check ----------------
 $('#shoot').onclick = () => take();
-function take() { stopLive(); checkPhoto(grab(MARGIN, OUT_W).toDataURL('image/jpeg', 0.92)); }
+// Full-resolution still when the browser can take one (ImageCapture: Android Chrome) - the video stream tops out
+// around 1080p, a still is 3-4x the pixels; small print like the NIN gains the most. Anything else -> video frame.
+const PHOTO_W = 2400;                  // crop width sent from a still (card ~2000 px wide = 2x the field template)
+async function take() {
+  stopLive();
+  let url = null;
+  try { url = await takeStill(); } catch (e) { url = null; }
+  checkPhoto(url || grab(MARGIN, OUT_W).toDataURL('image/jpeg', 0.92));
+}
+async function takeStill() {
+  const track = S.stream && S.stream.getVideoTracks()[0];
+  if (!track || !('ImageCapture' in window)) return null;
+  const ic = new ImageCapture(track);
+  const blob = await Promise.race([ic.takePhoto(), new Promise((_, rej) => setTimeout(() => rej(new Error('slow')), 4000))]);
+  const bmp = await createImageBitmap(blob);
+  const v = $('#video'), vw = v.videoWidth, vh = v.videoHeight, pw = bmp.width, ph = bmp.height;
+  // the video is the centre of the sensor image at the video's aspect ratio: map the box from video to still pixels
+  const vr = vw / vh, pr = pw / ph;
+  let sc, ox = 0, oy = 0;
+  if (pr > vr) { sc = ph / vh; ox = (pw - vw * sc) / 2; } else { sc = pw / vw; oy = (ph - vh * sc) / 2; }
+  const b = boxInVideo(MARGIN);
+  let x = ox + b.x * sc, y = oy + b.y * sc, w = b.w * sc, h = b.h * sc;
+  x = Math.max(0, x); y = Math.max(0, y); w = Math.min(pw - x, w); h = Math.min(ph - y, h);
+  if (w < vw * 0.5) { bmp.close && bmp.close(); return null; }   // mapping looks wrong -> use the video frame
+  const c = document.createElement('canvas');
+  c.width = Math.round(Math.min(PHOTO_W, w)); c.height = Math.round(c.width * h / w);
+  c.getContext('2d').drawImage(bmp, x, y, w, h, 0, 0, c.width, c.height);
+  bmp.close && bmp.close();
+  S.lastStill = {pw, ph, vw, vh};
+  return c.toDataURL('image/jpeg', 0.92);
+}
 $('#fileIn').onchange = async e => {
   const f = e.target.files[0]; if (!f) { show('home'); return; }
   const url = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(f); });
