@@ -1,0 +1,560 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2f3e51">
+<meta name="description" content="iDz - check your ID photo before you send it.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>iDz</title>
+<style>
+:root{
+  --bg:#2f3e51;--bg2:#27354a;--panel:#384a61;--panel2:#41546d;--line:#4c607a;
+  --text:#ffffff;--dim:#b7c3d1;--green:#27af7a;--green2:#2fd394;--amber:#f2b93b;--red:#ef5d5d;
+  --radius:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--text);
+  font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans Arabic",Tahoma,sans-serif;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit}
+.screen{position:fixed;inset:0;display:none;flex-direction:column;overflow:auto}
+.screen.on{display:flex}
+.wrap{width:100%;max-width:520px;margin:0 auto;padding:0 16px}
+
+/* header */
+header{display:flex;align-items:center;justify-content:space-between;padding:calc(env(safe-area-inset-top) + 14px) 0 6px}
+header img{height:46px;width:auto;display:block}
+.lang{display:flex;gap:4px;background:var(--bg2);border-radius:999px;padding:4px}
+.lang button{border:0;background:transparent;color:var(--dim);border-radius:999px;padding:6px 10px;font-size:13px;font-weight:600;cursor:pointer}
+.lang button.on{background:var(--panel2);color:var(--text)}
+
+/* home */
+.hero{padding:26px 0 8px}
+.hero h1{font-size:28px;line-height:1.2;font-weight:800;letter-spacing:-.01em}
+.hero h1 em{font-style:normal;color:var(--green2)}
+.hero p{color:var(--dim);margin-top:10px;font-size:16px}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:22px 0 4px}
+.steps div{background:var(--bg2);border-radius:12px;padding:12px 10px}
+.steps b{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--green);font-size:13px;margin-bottom:6px}
+.steps span{display:block;font-size:13px;color:var(--dim);line-height:1.3}
+.choice{display:grid;gap:12px;margin-top:22px}
+.doc{display:flex;align-items:center;gap:14px;text-align:start;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;cursor:pointer;transition:border-color .15s,transform .1s}
+.doc:active{transform:scale(.99)}
+.doc:hover{border-color:var(--green)}
+.doc .shape{flex:none;width:52px;height:34px;border-radius:6px;border:2px solid var(--green2);position:relative}
+.doc .shape.pp{width:38px;height:50px}
+.doc .shape::after{content:"";position:absolute;left:6px;right:6px;bottom:6px;height:3px;border-radius:2px;background:var(--green2);opacity:.7}
+.doc strong{display:block;font-size:17px}
+.doc small{display:block;color:var(--dim);font-size:14px}
+.doc .go{margin-inline-start:auto;color:var(--dim);font-size:22px}
+.codeBox{margin-top:24px;background:var(--panel);border-radius:var(--radius);padding:18px}
+.codeBox label{display:block;font-weight:700;margin-bottom:4px}
+.codeBox p{color:var(--dim);font-size:14px;margin-bottom:12px}
+.codeBox input{display:block;width:100%;padding:14px;border-radius:12px;border:1px solid var(--line);background:var(--bg2);color:var(--text);font-size:22px;letter-spacing:6px;text-align:center}
+.status{display:flex;align-items:center;gap:8px;margin-top:18px;color:var(--dim);font-size:14px}
+.status i{width:8px;height:8px;border-radius:50%;background:var(--dim)}
+.status.ok i{background:var(--green2)} .status.bad i{background:var(--red)}
+.err{color:var(--red);margin-top:12px;font-size:15px}
+footer{margin-top:auto;padding:24px 0 calc(env(safe-area-inset-bottom) + 18px);color:var(--dim);font-size:12px;text-align:center}
+
+.btn{display:block;width:100%;border:0;border-radius:14px;padding:15px;font-size:17px;font-weight:700;cursor:pointer;margin-top:12px;color:#fff;background:var(--green)}
+.btn:active{background:#229b6c}
+.btn.ghost{background:transparent;border:1px solid var(--line)}
+.btn.ghost:active{background:var(--panel)}
+
+/* camera */
+#cam{background:#000;overflow:hidden}
+#video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+#frame{position:absolute;border-radius:14px;box-shadow:0 0 0 9999px rgba(20,28,40,.62);pointer-events:none}
+#frame .c{position:absolute;width:34px;height:34px;border:4px solid var(--c,#fff);transition:border-color .15s}
+#frame .tl{top:-4px;left:-4px;border-right:0;border-bottom:0;border-top-left-radius:16px}
+#frame .tr{top:-4px;right:-4px;border-left:0;border-bottom:0;border-top-right-radius:16px}
+#frame .bl{bottom:-4px;left:-4px;border-right:0;border-top:0;border-bottom-left-radius:16px}
+#frame .br{bottom:-4px;right:-4px;border-left:0;border-top:0;border-bottom-right-radius:16px}
+#frame.good{--c:var(--green2)} #frame.bad{--c:var(--amber)}
+#frame .scan{position:absolute;left:8px;right:8px;height:2px;top:50%;background:linear-gradient(90deg,transparent,var(--green2),transparent);box-shadow:0 0 12px var(--green2);animation:scan 2.4s ease-in-out infinite;opacity:.85}
+@keyframes scan{0%,100%{top:12%}50%{top:88%}}
+#camTop{position:absolute;top:0;left:0;right:0;padding:calc(env(safe-area-inset-top) + 12px) 16px 0;text-align:center}
+.bar{display:flex;gap:6px;justify-content:center;margin-bottom:12px}
+.bar span{height:4px;width:44px;border-radius:2px;background:rgba(255,255,255,.25)}
+.bar span.on{background:var(--green2)}
+#camTitle{font-size:20px;font-weight:800}
+#camSub{color:var(--dim);font-size:15px}
+#hint{position:absolute;left:16px;right:16px;text-align:center}
+#hint span{display:inline-block;background:rgba(20,28,40,.75);border-radius:999px;padding:8px 14px;font-size:15px;font-weight:600}
+#hint span:empty{display:none}
+#camBottom{position:absolute;left:0;right:0;bottom:0;padding:0 16px calc(env(safe-area-inset-bottom) + 24px);display:flex;align-items:center;justify-content:space-between}
+#shoot{width:78px;height:78px;border-radius:50%;border:5px solid #fff;background:var(--green);cursor:pointer;flex:none;box-shadow:0 0 0 6px rgba(39,175,122,.25)}
+#shoot:active{transform:scale(.94)}
+.small{background:rgba(20,28,40,.7);border:1px solid rgba(255,255,255,.25);border-radius:12px;padding:10px 12px;font-size:14px;cursor:pointer;min-width:88px}
+
+/* wait */
+#wait{align-items:center;justify-content:center;text-align:center}
+#wait img{height:64px;animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.5;transform:scale(.97)}}
+#wait p{color:var(--dim);margin-top:18px}
+.track{width:180px;height:4px;border-radius:2px;background:var(--panel);margin:18px auto 0;overflow:hidden;position:relative}
+.track::after{content:"";position:absolute;top:0;bottom:0;width:40%;background:var(--green2);border-radius:2px;animation:slide 1.2s ease-in-out infinite}
+@keyframes slide{0%{left:-40%}100%{left:100%}}
+
+/* result */
+.banner{display:flex;gap:12px;align-items:center;border-radius:var(--radius);padding:16px;margin-top:16px;background:var(--panel)}
+.banner .dot{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-weight:900;font-size:20px;color:#fff}
+.banner.ok .dot{background:var(--green)} .banner.warn .dot{background:var(--amber);color:#2b2b2b} .banner.bad .dot{background:var(--red)}
+.banner h2{font-size:19px;line-height:1.25}
+.banner p{color:var(--dim);font-size:14px}
+.shot{position:relative;margin-top:14px}
+.shot img{width:100%;border-radius:14px;display:block;border:1px solid var(--line)}
+.shot span{position:absolute;top:10px;inset-inline-start:10px;background:rgba(20,28,40,.8);border-radius:999px;padding:4px 10px;font-size:13px;font-weight:600}
+.issue{border-radius:14px;padding:14px;margin-top:10px;background:var(--panel);border-inline-start:4px solid var(--amber)}
+.issue.damage,.issue.wrong{border-inline-start-color:var(--red)}
+.issue b{display:block;margin-bottom:2px}
+.issue span{color:var(--dim);font-size:15px}
+.read{margin-top:14px;background:var(--panel);border-radius:14px;padding:4px 14px}
+.read h3{font-size:14px;color:var(--dim);font-weight:600;padding:10px 0 4px}
+.read div{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+.read div span{color:var(--dim)}
+.read div b{text-align:end}
+#resBtns{padding-bottom:calc(env(safe-area-inset-bottom) + 20px)}
+
+/* done */
+#done .big{width:84px;height:84px;border-radius:50%;background:var(--green);display:grid;place-items:center;margin:16vh auto 18px;font-size:42px;font-weight:900}
+#done h1{text-align:center;font-size:26px}
+#done p{text-align:center;color:var(--dim);margin-top:8px}
+
+[dir=rtl] .doc .go{transform:scaleX(-1)}
+</style>
+</head>
+<body>
+
+<section class="screen on" id="home"><div class="wrap" style="display:flex;flex-direction:column;min-height:100%">
+  <header>
+    <img src="logo.png" alt="iDz">
+    <div class="lang" id="lang"><button data-l="en">EN</button><button data-l="fr">FR</button><button data-l="ar">عربي</button></div>
+  </header>
+  <div class="hero">
+    <h1 data-t="heroTitle"></h1>
+    <p data-t="heroText"></p>
+  </div>
+  <div class="steps">
+    <div><b>1</b><span data-t="step1"></span></div>
+    <div><b>2</b><span data-t="step2"></span></div>
+    <div><b>3</b><span data-t="step3"></span></div>
+  </div>
+  <div class="codeBox" id="codeBox" style="display:none">
+    <label for="codeIn" data-t="codeLabel"></label>
+    <p data-t="codeText"></p>
+    <input id="codeIn" inputmode="numeric" autocomplete="off" maxlength="12">
+    <button class="btn" id="codeGo" data-t="continue"></button>
+  </div>
+  <div class="choice" id="docChoice" style="display:none">
+    <button class="doc" data-doc="id"><i class="shape"></i><span><strong data-t="docId"></strong><small data-t="docIdSub"></small></span><span class="go">&rsaquo;</span></button>
+    <button class="doc" data-doc="passport"><i class="shape pp"></i><span><strong data-t="docPp"></strong><small data-t="docPpSub"></small></span><span class="go">&rsaquo;</span></button>
+  </div>
+  <div class="status" id="status" style="display:none"><i></i><span></span></div>
+  <p class="err" id="homeErr"></p>
+  <footer data-t="footer"></footer>
+</div></section>
+
+<section class="screen" id="cam">
+  <video id="video" playsinline muted autoplay></video>
+  <div id="frame"><i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i><i class="scan"></i></div>
+  <div id="camTop"><div class="bar" id="camBar"></div><div id="camTitle"></div><div id="camSub"></div></div>
+  <div id="hint"><span></span></div>
+  <div id="camBottom">
+    <button class="small" id="camBack" data-t="back"></button>
+    <button id="shoot" aria-label="Take photo"></button>
+    <button class="small" id="autoBtn"></button>
+  </div>
+  <input type="file" id="fileIn" accept="image/*" capture="environment" hidden>
+</section>
+
+<section class="screen" id="wait">
+  <img src="logo.png" alt="">
+  <p><span data-t="checking"></span> <span id="waitSec"></span></p>
+  <div class="track"></div>
+</section>
+
+<section class="screen" id="res"><div class="wrap">
+  <div class="banner" id="banner"><div class="dot"></div><div><h2 id="resTitle"></h2><p id="resSub"></p></div></div>
+  <div class="shot"><img id="shot" alt=""><span id="shotTag"></span></div>
+  <div id="resBody"></div>
+  <div id="resBtns"></div>
+</div></section>
+
+<section class="screen" id="done"><div class="wrap">
+  <div class="big">&#10003;</div>
+  <h1 data-t="sent"></h1>
+  <p id="doneText"></p>
+  <button class="btn" id="again" data-t="again" style="margin-top:28px"></button>
+</div></section>
+
+<script>
+// ---------------- words (EN / FR / AR) ----------------
+const T = {
+ en: {
+  heroTitle: 'Check your ID photo <em>before</em> you send it',
+  heroText: 'Take a photo of your document. iDz checks it in seconds and tells you if something is wrong, so it does not get rejected later.',
+  step1: 'Photo of the front', step2: 'Photo of the back', step3: 'Check and send',
+  codeLabel: 'Access code', codeText: 'Enter the code you were given to use iDz.', continue: 'Continue',
+  docId: 'National ID card', docIdSub: 'Front, then back', docPp: 'Passport', docPpSub: 'Photo page with the code lines',
+  online: 'Checking service online', offline: 'Checking service offline - photos cannot be checked right now',
+  badCode: 'That code is not right.', footer: 'iDz - document photo check',
+  back: 'Back', autoOn: 'Auto: on', autoOff: 'Auto: off', checking: 'Checking your photo...',
+  front: 'Front of the card', frontSub: 'The side with your photo', backSide: 'Back of the card', backSub: 'The side with the code lines',
+  pp: 'Passport photo page', ppSub: 'Open it flat, code lines at the bottom',
+  hDark: 'Too dark - find more light', hGlare: 'Reflection on the card - tilt it a little', hBlur: 'Hold still - the photo is blurry',
+  hMove: 'Hold still', hAuto: 'Hold still... taking the photo', hGood: 'Card in the box? Take the photo',
+  okFront: 'Front looks good', okAll: 'Everything looks good', okSub: 'No problems found',
+  problem: 'We found a problem', problemSub: 'A new photo usually fixes it', damaged: 'Your card looks damaged', damagedSub: 'It may be rejected',
+  failed: 'Could not check the photo', failedSub: 'Please try again',
+  isRight: 'Is this right?', surname: 'Surname', given: 'Given name', commune: 'Commune', number: 'Number',
+  toBack: 'Continue to the back', send: 'Send', retake: 'Retake photo', contAnyway: 'Continue anyway', sendAnyway: 'Send anyway', tryAgain: 'Try again',
+  sent: 'Sent', sentOk: 'Your document was sent.', sentForced: 'Your document was sent with the problems noted. A person will check it.',
+  again: 'Check another document', noCam: 'Camera not available: ', tagFront: 'Front', tagBack: 'Back', tagPp: 'Passport',
+  noAnswer: 'No answer after 90 s - the checking service may be busy or offline.', noReach: 'Could not reach the checking service.',
+ },
+ fr: {
+  heroTitle: 'Vérifiez la photo de votre pièce <em>avant</em> de l\'envoyer',
+  heroText: 'Prenez votre document en photo. iDz le vérifie en quelques secondes et vous dit s\'il y a un problème, pour éviter un refus plus tard.',
+  step1: 'Photo du recto', step2: 'Photo du verso', step3: 'Vérifier et envoyer',
+  codeLabel: 'Code d\'accès', codeText: 'Entrez le code qui vous a été donné pour utiliser iDz.', continue: 'Continuer',
+  docId: 'Carte d\'identité nationale', docIdSub: 'Recto, puis verso', docPp: 'Passeport', docPpSub: 'Page photo avec les lignes de code',
+  online: 'Service de vérification en ligne', offline: 'Service hors ligne - les photos ne peuvent pas être vérifiées pour le moment',
+  badCode: 'Ce code n\'est pas correct.', footer: 'iDz - vérification de photo de document',
+  back: 'Retour', autoOn: 'Auto : oui', autoOff: 'Auto : non', checking: 'Vérification de votre photo...',
+  front: 'Recto de la carte', frontSub: 'Le côté avec votre photo', backSide: 'Verso de la carte', backSub: 'Le côté avec les lignes de code',
+  pp: 'Page photo du passeport', ppSub: 'Ouvert à plat, lignes de code en bas',
+  hDark: 'Trop sombre - cherchez plus de lumière', hGlare: 'Reflet sur la carte - inclinez-la un peu', hBlur: 'Ne bougez pas - la photo est floue',
+  hMove: 'Ne bougez pas', hAuto: 'Ne bougez pas... photo en cours', hGood: 'Carte dans le cadre ? Prenez la photo',
+  okFront: 'Le recto est bon', okAll: 'Tout est bon', okSub: 'Aucun problème trouvé',
+  problem: 'Nous avons trouvé un problème', problemSub: 'Une nouvelle photo règle souvent le problème', damaged: 'Votre carte semble abîmée', damagedSub: 'Elle risque d\'être refusée',
+  failed: 'Impossible de vérifier la photo', failedSub: 'Veuillez réessayer',
+  isRight: 'Est-ce correct ?', surname: 'Nom', given: 'Prénom', commune: 'Commune', number: 'Numéro',
+  toBack: 'Continuer vers le verso', send: 'Envoyer', retake: 'Reprendre la photo', contAnyway: 'Continuer quand même', sendAnyway: 'Envoyer quand même', tryAgain: 'Réessayer',
+  sent: 'Envoyé', sentOk: 'Votre document a été envoyé.', sentForced: 'Votre document a été envoyé avec les problèmes signalés. Une personne va le vérifier.',
+  again: 'Vérifier un autre document', noCam: 'Caméra non disponible : ', tagFront: 'Recto', tagBack: 'Verso', tagPp: 'Passeport',
+  noAnswer: 'Pas de réponse après 90 s - le service est peut-être occupé ou hors ligne.', noReach: 'Impossible de joindre le service de vérification.',
+ },
+ ar: {
+  heroTitle: 'تحقّق من صورة بطاقتك <em>قبل</em> إرسالها',
+  heroText: 'التقط صورة لوثيقتك. يتحقّق منها iDz في ثوانٍ ويخبرك إن كانت هناك مشكلة، حتى لا تُرفض لاحقاً.',
+  step1: 'صورة الوجه الأمامي', step2: 'صورة الوجه الخلفي', step3: 'التحقّق والإرسال',
+  codeLabel: 'رمز الدخول', codeText: 'أدخل الرمز الذي أُعطي لك لاستخدام iDz.', continue: 'متابعة',
+  docId: 'بطاقة التعريف الوطنية', docIdSub: 'الوجه الأمامي ثم الخلفي', docPp: 'جواز السفر', docPpSub: 'صفحة الصورة مع أسطر الرموز',
+  online: 'خدمة التحقّق متصلة', offline: 'خدمة التحقّق غير متصلة - لا يمكن التحقّق من الصور الآن',
+  badCode: 'هذا الرمز غير صحيح.', footer: 'iDz - التحقّق من صور الوثائق',
+  back: 'رجوع', autoOn: 'تلقائي: نعم', autoOff: 'تلقائي: لا', checking: 'جارٍ التحقّق من صورتك...',
+  front: 'الوجه الأمامي للبطاقة', frontSub: 'الجهة التي فيها صورتك', backSide: 'الوجه الخلفي للبطاقة', backSub: 'الجهة التي فيها أسطر الرموز',
+  pp: 'صفحة صورة جواز السفر', ppSub: 'افتحه بشكل مسطّح، أسطر الرموز في الأسفل',
+  hDark: 'الإضاءة ضعيفة - ابحث عن ضوء أكثر', hGlare: 'انعكاس ضوء على البطاقة - أمِلها قليلاً', hBlur: 'لا تتحرّك - الصورة غير واضحة',
+  hMove: 'لا تتحرّك', hAuto: 'لا تتحرّك... جارٍ التقاط الصورة', hGood: 'البطاقة داخل الإطار؟ التقط الصورة',
+  okFront: 'الوجه الأمامي جيّد', okAll: 'كل شيء جيّد', okSub: 'لم نجد أي مشكلة',
+  problem: 'وجدنا مشكلة', problemSub: 'غالباً ما تحلّها صورة جديدة', damaged: 'تبدو بطاقتك تالفة', damagedSub: 'قد تُرفض',
+  failed: 'تعذّر التحقّق من الصورة', failedSub: 'يرجى المحاولة مرة أخرى',
+  isRight: 'هل هذا صحيح؟', surname: 'اللقب', given: 'الاسم', commune: 'البلدية', number: 'الرقم',
+  toBack: 'متابعة إلى الوجه الخلفي', send: 'إرسال', retake: 'إعادة التصوير', contAnyway: 'المتابعة على أي حال', sendAnyway: 'الإرسال على أي حال', tryAgain: 'حاول مرة أخرى',
+  sent: 'تم الإرسال', sentOk: 'تم إرسال وثيقتك.', sentForced: 'تم إرسال وثيقتك مع المشاكل المذكورة. سيتحقّق منها شخص.',
+  again: 'التحقّق من وثيقة أخرى', noCam: 'الكاميرا غير متاحة: ', tagFront: 'الأمام', tagBack: 'الخلف', tagPp: 'جواز السفر',
+  noAnswer: 'لا يوجد رد بعد 90 ثانية - قد تكون الخدمة مشغولة أو غير متصلة.', noReach: 'تعذّر الوصول إلى خدمة التحقّق.',
+ },
+};
+// what each problem code from the checking service means, per language
+const ISSUE = {
+ en: {
+  not_front: ['We can\'t see the front of the ID', 'Put the FRONT of the card (the side with your photo) inside the box.'],
+  wrong_side: ['This is the back of the card', 'Turn the card over and show the FRONT (the side with your photo).'],
+  front_again: ['This is the front again', 'Turn the card over and show the BACK (the side with the code lines).'],
+  unreadable: ['Some text on the card can\'t be read', 'Use even light, avoid reflections and keep the card flat and in focus.'],
+  face_light: ['Light is covering the photo on the card', 'Tilt the card a little or move away from the lamp or window.'],
+  no_face: ['We can\'t see the photo on the card', 'Make sure the whole card is inside the box and nothing covers the photo.'],
+  back_unread: ['The code lines on the back can\'t be read', 'Keep the whole back inside the box, in focus, without reflections.'],
+  damage: ['The card looks cracked or broken', 'Damaged cards are usually rejected. You can still send it, or use another document.'],
+  pp_unread: ['The passport can\'t be read', 'Show the photo page with the two code lines at the bottom, flat and in focus.'],
+ },
+ fr: {
+  not_front: ['Nous ne voyons pas le recto de la carte', 'Placez le RECTO de la carte (le côté avec votre photo) dans le cadre.'],
+  wrong_side: ['C\'est le verso de la carte', 'Retournez la carte et montrez le RECTO (le côté avec votre photo).'],
+  front_again: ['C\'est encore le recto', 'Retournez la carte et montrez le VERSO (le côté avec les lignes de code).'],
+  unreadable: ['Une partie du texte est illisible', 'Utilisez une lumière uniforme, évitez les reflets, gardez la carte à plat et nette.'],
+  face_light: ['La lumière couvre la photo de la carte', 'Inclinez un peu la carte ou éloignez-vous de la lampe ou de la fenêtre.'],
+  no_face: ['Nous ne voyons pas la photo sur la carte', 'Vérifiez que toute la carte est dans le cadre et que rien ne cache la photo.'],
+  back_unread: ['Les lignes de code du verso sont illisibles', 'Gardez tout le verso dans le cadre, net et sans reflets.'],
+  damage: ['La carte semble fissurée ou cassée', 'Les cartes abîmées sont souvent refusées. Vous pouvez l\'envoyer quand même ou utiliser un autre document.'],
+  pp_unread: ['Le passeport est illisible', 'Montrez la page photo avec les deux lignes de code en bas, à plat et nette.'],
+ },
+ ar: {
+  not_front: ['لا نرى الوجه الأمامي للبطاقة', 'ضع الوجه الأمامي للبطاقة (الجهة التي فيها صورتك) داخل الإطار.'],
+  wrong_side: ['هذا هو الوجه الخلفي للبطاقة', 'اقلب البطاقة وأظهر الوجه الأمامي (الجهة التي فيها صورتك).'],
+  front_again: ['هذا هو الوجه الأمامي مرة أخرى', 'اقلب البطاقة وأظهر الوجه الخلفي (الجهة التي فيها أسطر الرموز).'],
+  unreadable: ['بعض الكتابة على البطاقة غير مقروءة', 'استعمل إضاءة متساوية، وتجنّب الانعكاسات، وأبقِ البطاقة مسطّحة وواضحة.'],
+  face_light: ['الضوء يغطي الصورة على البطاقة', 'أمِل البطاقة قليلاً أو ابتعد عن المصباح أو النافذة.'],
+  no_face: ['لا نرى الصورة على البطاقة', 'تأكّد أن البطاقة كلها داخل الإطار وأن لا شيء يغطي الصورة.'],
+  back_unread: ['أسطر الرموز في الخلف غير مقروءة', 'أبقِ الوجه الخلفي كله داخل الإطار، واضحاً وبدون انعكاسات.'],
+  damage: ['تبدو البطاقة مشقوقة أو مكسورة', 'غالباً ما تُرفض البطاقات التالفة. يمكنك إرسالها على أي حال أو استعمال وثيقة أخرى.'],
+  pp_unread: ['جواز السفر غير مقروء', 'أظهر صفحة الصورة مع سطري الرموز في الأسفل، مسطّحة وواضحة.'],
+ },
+};
+
+const $ = s => document.querySelector(s);
+const store = {get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } },
+               set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} }};
+const QL = new URLSearchParams(location.search).get('lang');   // ?lang=ar / fr / en for shared links
+let LANG = (T[QL] && QL) || store.get('idz_lang') ||((navigator.language || 'en').slice(0, 2) === 'fr' ? 'fr' : (navigator.language || '').slice(0, 2) === 'ar' ? 'ar' : 'en');
+const t = k => (T[LANG] && T[LANG][k]) || T.en[k] || k;
+function setLang(l) {
+  LANG = l; store.set('idz_lang', l);
+  document.documentElement.lang = l; document.documentElement.dir = l === 'ar' ? 'rtl' : 'ltr';
+  document.querySelectorAll('[data-t]').forEach(e => { e.innerHTML = t(e.dataset.t); });
+  document.querySelectorAll('#lang button').forEach(b => b.classList.toggle('on', b.dataset.l === l));
+  $('#autoBtn').textContent = S.auto ? t('autoOn') : t('autoOff');
+  if (S.step) setCamText();
+  if (S.statusKey) setStatus(S.statusKey);
+}
+document.querySelectorAll('#lang button').forEach(b => b.onclick = () => setLang(b.dataset.l));
+
+// ---------------- state ----------------
+const CARD_RATIO = 85.6 / 54;          // ID-1 card
+const PP_RATIO = 125 / 88;             // passport photo page
+const MARGIN = 0.10;                   // generous: a card a bit outside the box is still in the photo
+const OUT_W = 1400;
+const S = {doc: null, step: null, front: null, back: null, auto: false, stream: null, live: null, history: [], frontRead: {}, statusKey: null};
+
+let waitTimer = null;
+function show(id) {
+  document.querySelectorAll('.screen').forEach(e => e.classList.toggle('on', e.id === id));
+  clearInterval(waitTimer);
+  if (id === 'wait') { const t0 = Date.now(); $('#waitSec').textContent = ''; waitTimer = setInterval(() => $('#waitSec').textContent = Math.round((Date.now() - t0) / 1000) + ' s', 1000); }
+  if (id !== 'cam') stopLive();
+}
+addEventListener('error', e => showFail(e.message));
+addEventListener('unhandledrejection', e => showFail(e.reason && e.reason.message || String(e.reason)));
+function showFail(msg) {
+  if (!$('#wait').classList.contains('on')) return;
+  renderResult({kind: 'bad', title: t('failed'), sub: msg || t('failedSub'), img: null, issues: [], read: {}, buttons: [[t('tryAgain'), () => openCam(S.step || 'front')]]});
+}
+
+// ---------------- where the checking service is + access code ----------------
+let API = '';
+let CODE = store.get('cc_code') || '';
+async function boot() {
+  if (location.hostname.endsWith('github.io')) {
+    try { API = ((await (await fetch('config.json?t=' + Date.now(), {cache: 'no-store'})).json()).api || '').replace(/\/$/, ''); }
+    catch (e) { API = ''; }
+  }
+  if (!CODE) return askCode();
+  const h = await health();
+  if (h && h.code === 'bad_access') return askCode(t('badCode'));
+  $('#codeBox').style.display = 'none'; $('#docChoice').style.display = 'grid';
+  setStatus(h && h.ok ? 'online' : 'offline');
+}
+function setStatus(k) {
+  S.statusKey = k; const s = $('#status'); s.style.display = 'flex';
+  s.className = 'status ' + (k === 'online' ? 'ok' : 'bad'); s.querySelector('span').textContent = t(k);
+}
+async function health() {
+  try { return await (await fetch(API + '/api/health', {headers: {'X-Access': CODE}, cache: 'no-store'})).json(); }
+  catch (e) { return null; }
+}
+function askCode(msg) {
+  $('#docChoice').style.display = 'none'; $('#status').style.display = 'none'; S.statusKey = null;
+  $('#codeBox').style.display = 'block'; $('#homeErr').textContent = msg || '';
+  $('#codeIn').value = '';
+}
+$('#codeGo').onclick = () => { CODE = $('#codeIn').value.trim(); store.set('cc_code', CODE); $('#homeErr').textContent = ''; boot(); };
+$('#codeIn').onkeydown = e => { if (e.key === 'Enter') $('#codeGo').click(); };
+
+// ---------------- flow ----------------
+document.querySelectorAll('[data-doc]').forEach(b => b.onclick = () => {
+  S.doc = b.dataset.doc; S.front = S.back = null; S.history = []; S.frontRead = {};
+  openCam(S.doc === 'id' ? 'front' : 'passport');
+});
+$('#camBack').onclick = () => { stopCam(); show('home'); };
+$('#autoBtn').onclick = () => { S.auto = !S.auto; $('#autoBtn').textContent = S.auto ? t('autoOn') : t('autoOff'); };
+$('#again').onclick = () => { S.step = null; show('home'); };
+
+function setCamText() {
+  const m = {front: ['front', 'frontSub'], back: ['backSide', 'backSub'], passport: ['pp', 'ppSub']}[S.step];
+  $('#camTitle').textContent = t(m[0]); $('#camSub').textContent = t(m[1]);
+  const n = S.doc === 'id' ? 3 : 2, at = S.step === 'back' ? 1 : 0;
+  $('#camBar').innerHTML = Array.from({length: n}, (_, i) => '<span class="' + (i <= at ? 'on' : '') + '"></span>').join('');
+}
+
+// ---------------- camera ----------------
+async function openCam(step) {
+  S.step = step; setCamText();
+  $('#hint span').textContent = '';
+  if (!window.isSecureContext || !navigator.mediaDevices) { $('#fileIn').value = ''; $('#fileIn').click(); return; }
+  show('cam');
+  try {
+    if (!S.stream) S.stream = await navigator.mediaDevices.getUserMedia({audio: false,
+      video: {facingMode: {ideal: 'environment'}, width: {ideal: 1920}, height: {ideal: 1080}}});
+    const v = $('#video'); v.srcObject = S.stream; await v.play();
+    layout(); startLive();
+  } catch (e) {
+    stopCam(); show('home'); $('#homeErr').textContent = t('noCam') + e.message;
+  }
+}
+function stopLive() { clearInterval(S.live); S.live = null; }
+function stopCam() { stopLive(); if (S.stream) S.stream.getTracks().forEach(x => x.stop()); S.stream = null; }
+function boxRect() {
+  const W = innerWidth, H = innerHeight, ratio = S.step === 'passport' ? PP_RATIO : CARD_RATIO;
+  let w = Math.min(W * 0.88, 640), h = w / ratio;
+  if (h > H * 0.55) { h = H * 0.55; w = h * ratio; }
+  return {x: (W - w) / 2, y: (H - h) / 2 - 10, w, h};
+}
+function layout() {
+  const r = boxRect();
+  Object.assign($('#frame').style, {left: r.x + 'px', top: r.y + 'px', width: r.w + 'px', height: r.h + 'px'});
+  $('#hint').style.top = (r.y + r.h + 20) + 'px';
+}
+addEventListener('resize', () => { if (S.stream) layout(); });
+function boxInVideo(margin) {
+  const v = $('#video'), vw = v.videoWidth, vh = v.videoHeight, W = innerWidth, H = innerHeight;
+  const sc = Math.max(W / vw, H / vh), ox = (W - vw * sc) / 2, oy = (H - vh * sc) / 2, r = boxRect();
+  const mx = r.w * margin, my = r.h * margin;
+  let x = (r.x - mx - ox) / sc, y = (r.y - my - oy) / sc, w = (r.w + 2 * mx) / sc, h = (r.h + 2 * my) / sc;
+  x = Math.max(0, x); y = Math.max(0, y); w = Math.min(vw - x, w); h = Math.min(vh - y, h);
+  return {x, y, w, h};
+}
+function grab(margin, outW) {
+  const v = $('#video'), b = boxInVideo(margin), c = document.createElement('canvas');
+  c.width = Math.round(Math.min(outW, b.w)); c.height = Math.round(c.width * b.h / b.w);
+  c.getContext('2d').drawImage(v, b.x, b.y, b.w, b.h, 0, 0, c.width, c.height);
+  return c;
+}
+
+// live tips (simple maths in the browser, no upload)
+let prevSmall = null, goodSince = 0;
+function startLive() { stopLive(); prevSmall = null; goodSince = 0; S.live = setInterval(liveTick, 250); }
+function liveTick() {
+  const v = $('#video'); if (!v.videoWidth) return;
+  const c = grab(0, 240), g = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+  const w = c.width, h = c.height, n = w * h, gray = new Float32Array(n);
+  let sum = 0, glare = 0;
+  for (let i = 0; i < n; i++) { const y = 0.299 * g[i*4] + 0.587 * g[i*4+1] + 0.114 * g[i*4+2]; gray[i] = y; sum += y; if (y >= 250) glare++; }
+  const mean = sum / n;
+  let ls = 0, ls2 = 0, m = 0;
+  for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) {
+    const i = y * w + x, l = 4 * gray[i] - gray[i-1] - gray[i+1] - gray[i-w] - gray[i+w];
+    ls += l; ls2 += l * l; m++;
+  }
+  const sharp = ls2 / m - (ls / m) ** 2;
+  let move = 0;
+  if (prevSmall) { for (let i = 0; i < n; i += 4) move += Math.abs(gray[i] - prevSmall[i]); move /= (n / 4); }
+  prevSmall = gray;
+  let k = 'hGood', good = false;
+  if (mean < 55) k = 'hDark';
+  else if (glare / n > 0.025) k = 'hGlare';
+  else if (sharp < 60) k = 'hBlur';
+  else if (move > 6) k = 'hMove';
+  else { k = S.auto ? 'hAuto' : 'hGood'; good = true; }
+  $('#hint span').textContent = t(k);
+  $('#frame').className = good ? 'good' : 'bad';
+  if (good) { if (!goodSince) goodSince = Date.now(); } else goodSince = 0;
+  if (good && S.auto && Date.now() - goodSince > 900) take();
+}
+
+// ---------------- take + check ----------------
+$('#shoot').onclick = () => take();
+function take() { stopLive(); checkPhoto(grab(MARGIN, OUT_W).toDataURL('image/jpeg', 0.92)); }
+$('#fileIn').onchange = async e => {
+  const f = e.target.files[0]; if (!f) { show('home'); return; }
+  const url = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(f); });
+  const img = new Image(); img.src = url; await img.decode();
+  const c = document.createElement('canvas'), k = Math.min(1, 1800 / Math.max(img.width, img.height));
+  c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+  c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+  checkPhoto(c.toDataURL('image/jpeg', 0.92));
+};
+async function api(path, body) {
+  const ctl = new AbortController(), to = setTimeout(() => ctl.abort(), 90000);
+  let r;
+  try { r = await fetch(API + '/' + path, {method: 'POST', signal: ctl.signal, headers: {'Content-Type': 'application/json', 'X-Access': CODE}, body: JSON.stringify(body)}); }
+  catch (e) { throw new Error(e.name === 'AbortError' ? t('noAnswer') : t('noReach')); }
+  finally { clearTimeout(to); }
+  if (!r.ok) throw new Error(t('noReach') + ' (' + r.status + ')');
+  const j = await r.json();
+  if (j.code === 'bad_access') { stopCam(); show('home'); askCode(t('badCode')); throw new Error('access code'); }
+  return j;
+}
+async function checkPhoto(dataUrl) {
+  show('wait');
+  const step = S.step, body = {step};
+  if (step === 'back') { body.front = S.front; body.back = dataUrl; } else body.front = dataUrl;
+  let r;
+  try { r = await api('api/check', body); } catch (e) { if (e.message === 'access code') return; r = {ok: false, msg: e.message}; }
+  S.history.push({step, issues: (r.issues || []).map(i => i.code), ms: r.ms});
+  showResult(step, dataUrl, r);
+}
+
+function renderResult(o) {
+  show('res');
+  const b = $('#banner'); b.className = 'banner ' + o.kind;
+  b.querySelector('.dot').textContent = o.kind === 'ok' ? '✓' : '!';
+  $('#resTitle').textContent = o.title; $('#resSub').textContent = o.sub || '';
+  const shot = $('.shot'); shot.style.display = o.img ? 'block' : 'none';
+  if (o.img) { $('#shot').src = o.img; $('#shotTag').textContent = o.tag || ''; }
+  const body = $('#resBody'); body.innerHTML = '';
+  o.issues.forEach(i => {
+    const tx = (ISSUE[LANG] && ISSUE[LANG][i.code]) || ISSUE.en[i.code] || [i.title, i.text];
+    const d = document.createElement('div'); d.className = 'issue ' + i.kind;
+    d.innerHTML = '<b></b><span></span>'; d.querySelector('b').textContent = tx[0]; d.querySelector('span').textContent = tx[1];
+    body.appendChild(d);
+  });
+  const rd = o.read || {}, rows = [['surname', rd.last], ['given', rd.first], ['commune', rd.commune], ['number', rd.number]].filter(x => x[1]);
+  if (rows.length) {
+    const box = document.createElement('div'); box.className = 'read';
+    box.innerHTML = '<h3></h3>'; box.querySelector('h3').textContent = t('isRight');
+    rows.forEach(([k, v]) => { const d = document.createElement('div'); d.innerHTML = '<span></span><b dir="auto"></b>'; d.querySelector('span').textContent = t(k); d.querySelector('b').textContent = v; box.appendChild(d); });
+    body.appendChild(box);
+  }
+  const btns = $('#resBtns'); btns.innerHTML = '';
+  o.buttons.forEach(([txt, fn, ghost]) => { const x = document.createElement('button'); x.className = 'btn' + (ghost ? ' ghost' : ''); x.textContent = txt; x.onclick = fn; btns.appendChild(x); });
+  $('#res').scrollTop = 0;
+}
+
+function showResult(step, dataUrl, r) {
+  const tag = t(step === 'front' ? 'tagFront' : step === 'back' ? 'tagBack' : 'tagPp');
+  if (!r.ok) return renderResult({kind: 'bad', title: t('failed'), sub: r.msg || t('failedSub'), img: dataUrl, tag, issues: [], read: {}, buttons: [[t('tryAgain'), () => openCam(step)]]});
+  const issues = r.issues || [];
+  if (step === 'front') S.frontRead = r.read || {};
+  const rd = Object.assign({}, step === 'back' ? S.frontRead : {}, r.read || {});
+  const wrong = issues.some(i => i.kind === 'wrong'), damaged = issues.some(i => i.kind === 'damage');
+  const next = () => {
+    if (step === 'front') { S.front = dataUrl; openCam('back'); }
+    else { if (step === 'back') S.back = dataUrl; else S.front = dataUrl; send(issues, rd, issues.length > 0); }
+  };
+  let kind, title, sub, buttons;
+  if (!issues.length) {
+    kind = 'ok'; title = step === 'front' ? t('okFront') : t('okAll'); sub = t('okSub');
+    buttons = [[step === 'front' ? t('toBack') : t('send'), next], [t('retake'), () => openCam(step), true]];
+  } else {
+    kind = damaged || wrong ? 'bad' : 'warn';
+    title = damaged && !wrong ? t('damaged') : t('problem'); sub = damaged && !wrong ? t('damagedSub') : t('problemSub');
+    buttons = [[t('retake'), () => openCam(step)]];
+    if (!wrong) buttons.push([step === 'front' ? t('contAnyway') : t('sendAnyway'), next, true]);
+  }
+  renderResult({kind, title, sub, img: dataUrl, tag, issues, read: rd, buttons});
+}
+
+async function send(issues, read, forced) {
+  show('wait');
+  try {
+    const r = await api('api/send', {doc: S.doc, step: S.step, front: S.front, back: S.back, issues, read, forced, history: S.history});
+    if (!r.ok) throw new Error(r.msg || 'not saved');
+    stopCam();
+    $('#doneText').textContent = forced ? t('sentForced') : t('sentOk');
+    show('done');
+  } catch (e) {
+    renderResult({kind: 'bad', title: t('failed'), sub: e.message, img: null, issues: [], read: {}, buttons: [[t('tryAgain'), () => send(issues, read, forced)]]});
+  }
+}
+
+setLang(LANG);
+boot();
+</script>
+</body>
+</html>
