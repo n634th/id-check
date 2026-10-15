@@ -74,6 +74,10 @@ footer{margin-top:auto;padding:24px 0 calc(env(safe-area-inset-bottom) + 18px);c
 #frame .bl{bottom:-4px;left:-4px;border-right:0;border-top:0;border-bottom-left-radius:16px}
 #frame .br{bottom:-4px;right:-4px;border-left:0;border-top:0;border-bottom-right-radius:16px}
 #frame.good{--c:var(--green2)} #frame.bad{--c:var(--amber)}
+/* where the NIN sits on the front (template box 398,288-660,323 of 800x516) */
+#frame .nin{position:absolute;left:49.75%;top:55.8%;width:32.75%;height:6.8%;border:2px dashed var(--c,#fff);border-radius:6px;opacity:.9;display:none}
+#frame.front .nin{display:block}
+#frame .nin em{position:absolute;bottom:100%;inset-inline-start:0;margin-bottom:3px;font-style:normal;font-size:12px;font-weight:700;background:rgba(20,28,40,.75);border-radius:6px;padding:1px 6px;white-space:nowrap}
 #frame .scan{position:absolute;left:8px;right:8px;height:2px;top:50%;background:linear-gradient(90deg,transparent,var(--green2),transparent);box-shadow:0 0 12px var(--green2);animation:scan 2.4s ease-in-out infinite;opacity:.85}
 @keyframes scan{0%,100%{top:12%}50%{top:88%}}
 #camTop{position:absolute;top:0;left:0;right:0;padding:calc(env(safe-area-inset-top) + 12px) 16px 0;text-align:center}
@@ -160,7 +164,7 @@ footer{margin-top:auto;padding:24px 0 calc(env(safe-area-inset-bottom) + 18px);c
 
 <section class="screen" id="cam">
   <video id="video" playsinline muted autoplay></video>
-  <div id="frame"><i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i><i class="scan"></i></div>
+  <div id="frame"><i class="c tl"></i><i class="c tr"></i><i class="c bl"></i><i class="c br"></i><i class="nin"><em data-t="ninBox"></em></i><i class="scan"></i></div>
   <div id="camTop"><div class="bar" id="camBar"></div><div id="camTitle"></div><div id="camSub"></div></div>
   <div id="hint"><span></span></div>
   <div id="camBottom">
@@ -211,6 +215,8 @@ const T = {
   problem: 'We found a problem', problemSub: 'A new photo usually fixes it', damaged: 'Your card looks damaged', damagedSub: 'It may be rejected',
   failed: 'Could not check the photo', failedSub: 'Please try again',
   isRight: 'Is this right?', surname: 'Surname', given: 'Given name', commune: 'Commune', number: 'Number',
+  nin: 'NIN', birth: 'Date of birth', sex: 'Sex', expiry: 'Expiry date', cardNo: 'Card number', female: 'Female', male: 'Male',
+  ninBox: 'NIN here',
   toBack: 'Continue to the back', send: 'Send', retake: 'Retake photo', contAnyway: 'Continue anyway', sendAnyway: 'Send anyway', tryAgain: 'Try again',
   sent: 'Sent', sentOk: 'Your document was sent.', sentForced: 'Your document was sent with the problems noted. A person will check it.',
   again: 'Check another document', noCam: 'Camera not available: ', tagFront: 'Front', tagBack: 'Back', tagPp: 'Passport',
@@ -233,6 +239,8 @@ const T = {
   problem: 'Nous avons trouvé un problème', problemSub: 'Une nouvelle photo règle souvent le problème', damaged: 'Votre carte semble abîmée', damagedSub: 'Elle risque d\'être refusée',
   failed: 'Impossible de vérifier la photo', failedSub: 'Veuillez réessayer',
   isRight: 'Est-ce correct ?', surname: 'Nom', given: 'Prénom', commune: 'Commune', number: 'Numéro',
+  nin: 'NIN', birth: 'Date de naissance', sex: 'Sexe', expiry: 'Date d\'expiration', cardNo: 'N° de carte', female: 'Féminin', male: 'Masculin',
+  ninBox: 'NIN ici',
   toBack: 'Continuer vers le verso', send: 'Envoyer', retake: 'Reprendre la photo', contAnyway: 'Continuer quand même', sendAnyway: 'Envoyer quand même', tryAgain: 'Réessayer',
   sent: 'Envoyé', sentOk: 'Votre document a été envoyé.', sentForced: 'Votre document a été envoyé avec les problèmes signalés. Une personne va le vérifier.',
   again: 'Vérifier un autre document', noCam: 'Caméra non disponible : ', tagFront: 'Recto', tagBack: 'Verso', tagPp: 'Passeport',
@@ -255,6 +263,8 @@ const T = {
   problem: 'وجدنا مشكلة', problemSub: 'غالباً ما تحلّها صورة جديدة', damaged: 'تبدو بطاقتك تالفة', damagedSub: 'قد تُرفض',
   failed: 'تعذّر التحقّق من الصورة', failedSub: 'يرجى المحاولة مرة أخرى',
   isRight: 'هل هذا صحيح؟', surname: 'اللقب', given: 'الاسم', commune: 'البلدية', number: 'الرقم',
+  nin: 'رقم التعريف الوطني', birth: 'تاريخ الميلاد', sex: 'الجنس', expiry: 'تاريخ الانتهاء', cardNo: 'رقم البطاقة', female: 'أنثى', male: 'ذكر',
+  ninBox: 'رقم التعريف هنا',
   toBack: 'متابعة إلى الوجه الخلفي', send: 'إرسال', retake: 'إعادة التصوير', contAnyway: 'المتابعة على أي حال', sendAnyway: 'الإرسال على أي حال', tryAgain: 'حاول مرة أخرى',
   sent: 'تم الإرسال', sentOk: 'تم إرسال وثيقتك.', sentForced: 'تم إرسال وثيقتك مع المشاكل المذكورة. سيتحقّق منها شخص.',
   again: 'التحقّق من وثيقة أخرى', noCam: 'الكاميرا غير متاحة: ', tagFront: 'الأمام', tagBack: 'الخلف', tagPp: 'جواز السفر',
@@ -273,6 +283,7 @@ const ISSUE = {
   back_unread: ['The code lines on the back can\'t be read', 'Keep the whole back inside the box, in focus, without reflections.'],
   damage: ['The card looks cracked or broken', 'Damaged cards are usually rejected. You can still send it, or use another document.'],
   pp_unread: ['The passport can\'t be read', 'Show the photo page with the two code lines at the bottom, flat and in focus.'],
+  expired: ['Your card has expired', 'Expired cards are usually rejected. You can still send it, or use another document.'],
  },
  fr: {
   not_front: ['Nous ne voyons pas le recto de la carte', 'Placez le RECTO de la carte (le côté avec votre photo) dans le cadre.'],
@@ -284,6 +295,7 @@ const ISSUE = {
   back_unread: ['Les lignes de code du verso sont illisibles', 'Gardez tout le verso dans le cadre, net et sans reflets.'],
   damage: ['La carte semble fissurée ou cassée', 'Les cartes abîmées sont souvent refusées. Vous pouvez l\'envoyer quand même ou utiliser un autre document.'],
   pp_unread: ['Le passeport est illisible', 'Montrez la page photo avec les deux lignes de code en bas, à plat et nette.'],
+  expired: ['Votre carte a expiré', 'Les cartes expirées sont souvent refusées. Vous pouvez l\'envoyer quand même ou utiliser un autre document.'],
  },
  ar: {
   not_front: ['لا نرى الوجه الأمامي للبطاقة', 'ضع الوجه الأمامي للبطاقة (الجهة التي فيها صورتك) داخل الإطار.'],
@@ -295,6 +307,7 @@ const ISSUE = {
   back_unread: ['أسطر الرموز في الخلف غير مقروءة', 'أبقِ الوجه الخلفي كله داخل الإطار، واضحاً وبدون انعكاسات.'],
   damage: ['تبدو البطاقة مشقوقة أو مكسورة', 'غالباً ما تُرفض البطاقات التالفة. يمكنك إرسالها على أي حال أو استعمال وثيقة أخرى.'],
   pp_unread: ['جواز السفر غير مقروء', 'أظهر صفحة الصورة مع سطري الرموز في الأسفل، مسطّحة وواضحة.'],
+  expired: ['انتهت صلاحية بطاقتك', 'غالباً ما تُرفض البطاقات المنتهية الصلاحية. يمكنك إرسالها على أي حال أو استعمال وثيقة أخرى.'],
  },
 };
 
@@ -407,6 +420,7 @@ function boxRect() {
 }
 function layout() {
   const r = boxRect();
+  $('#frame').className = S.step === 'front' ? 'front' : '';
   Object.assign($('#frame').style, {left: r.x + 'px', top: r.y + 'px', width: r.w + 'px', height: r.h + 'px'});
   $('#hint').style.top = (r.y + r.h + 20) + 'px';
 }
@@ -452,7 +466,7 @@ function liveTick() {
   else if (move > 6) k = 'hMove';
   else { k = S.auto ? 'hAuto' : 'hGood'; good = true; }
   $('#hint span').textContent = t(k);
-  $('#frame').className = good ? 'good' : 'bad';
+  $('#frame').className = (good ? 'good' : 'bad') + (S.step === 'front' ? ' front' : '');
   if (good) { if (!goodSince) goodSince = Date.now(); } else goodSince = 0;
   if (good && S.auto && Date.now() - goodSince > 900) take();
 }
@@ -504,7 +518,10 @@ function renderResult(o) {
     d.innerHTML = '<b></b><span></span>'; d.querySelector('b').textContent = tx[0]; d.querySelector('span').textContent = tx[1];
     body.appendChild(d);
   });
-  const rd = o.read || {}, rows = [['surname', rd.last], ['given', rd.first], ['commune', rd.commune], ['number', rd.number]].filter(x => x[1]);
+  const rd = o.read || {};
+  const sex = rd.sex === 'F' ? t('female') : rd.sex === 'M' ? t('male') : null;
+  const rows = [['surname', rd.last], ['given', rd.first], ['nin', rd.nin], ['commune', rd.commune], ['birth', rd.birth],
+                ['sex', sex], ['expiry', rd.expiry], ['cardNo', rd.doc_number], ['number', rd.number]].filter(x => x[1]);
   if (rows.length) {
     const box = document.createElement('div'); box.className = 'read';
     box.innerHTML = '<h3></h3>'; box.querySelector('h3').textContent = t('isRight');
@@ -522,7 +539,8 @@ function showResult(step, dataUrl, r) {
   const issues = r.issues || [];
   if (step === 'front') S.frontRead = r.read || {};
   const rd = Object.assign({}, step === 'back' ? S.frontRead : {}, r.read || {});
-  const wrong = issues.some(i => i.kind === 'wrong'), damaged = issues.some(i => i.kind === 'damage');
+  const wrong = issues.some(i => i.kind === 'wrong'), damaged = issues.some(i => i.code === 'damage'),
+        red = issues.some(i => i.kind === 'damage');
   const next = () => {
     if (step === 'front') { S.front = dataUrl; openCam('back'); }
     else { if (step === 'back') S.back = dataUrl; else S.front = dataUrl; send(issues, rd, issues.length > 0); }
@@ -532,7 +550,7 @@ function showResult(step, dataUrl, r) {
     kind = 'ok'; title = step === 'front' ? t('okFront') : t('okAll'); sub = t('okSub');
     buttons = [[step === 'front' ? t('toBack') : t('send'), next], [t('retake'), () => openCam(step), true]];
   } else {
-    kind = damaged || wrong ? 'bad' : 'warn';
+    kind = red || wrong ? 'bad' : 'warn';
     title = damaged && !wrong ? t('damaged') : t('problem'); sub = damaged && !wrong ? t('damagedSub') : t('problemSub');
     buttons = [[t('retake'), () => openCam(step)]];
     if (!wrong) buttons.push([step === 'front' ? t('contAnyway') : t('sendAnyway'), next, true]);
