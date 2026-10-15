@@ -543,7 +543,7 @@ function renderResult(o) {
       [[t('frontLbl'), v(df.front)], [t('backLbl'), v(df.back)]].forEach(([lab, val], j) => {
         if (j) sp.appendChild(document.createTextNode('  |  '));
         sp.appendChild(document.createTextNode(lab + ': '));
-        const bi = document.createElement('bdi'); bi.textContent = val; sp.appendChild(bi);
+        const bi = document.createElement('bdi'); bi.dir = /[؀-ۿ]/.test(val) ? 'rtl' : 'ltr'; bi.textContent = val; sp.appendChild(bi);
       });
       d.appendChild(l);
     });
