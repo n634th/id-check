@@ -121,6 +121,10 @@ footer{margin-top:auto;padding:24px 0 calc(env(safe-area-inset-bottom) + 18px);c
 .read div{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
 .read div span{color:var(--dim)}
 .read div b{text-align:end}
+.read small.same{display:block;color:var(--green2);font-size:12px;font-weight:600}
+.issue .diff{display:block;margin-top:8px;padding-top:8px;border-top:1px solid var(--line)}
+.issue .diff b{display:inline;margin:0}
+.issue .diff span{display:block;color:var(--text);font-size:14px}
 .read div.ninimg{display:block;border-top:0;padding:0 0 12px}
 .read div.ninimg img{display:block;width:100%;border-radius:8px;border:1px solid var(--line)}
 .read div.ninimg small{display:block;color:var(--dim);font-size:12px;margin-top:4px}
@@ -220,6 +224,8 @@ const T = {
   isRight: 'Is this right?', surname: 'Surname', given: 'Given name', commune: 'Commune', number: 'Number',
   nin: 'NIN', birth: 'Date of birth', sex: 'Sex', expiry: 'Expiry date', cardNo: 'Card number', female: 'Female', male: 'Male',
   ninBox: 'NIN here', issueDate: 'Issue date', ninSaw: 'What the NIN reader saw',
+  retakeFront: 'Retake the front', retakeBack: 'Retake the back', sameBack: 'same on the back', notRead: 'not read',
+  frontLbl: 'Front', backLbl: 'Back',
   toBack: 'Continue to the back', send: 'Send', retake: 'Retake photo', contAnyway: 'Continue anyway', sendAnyway: 'Send anyway', tryAgain: 'Try again',
   sent: 'Sent', sentOk: 'Your document was sent.', sentForced: 'Your document was sent with the problems noted. A person will check it.',
   again: 'Check another document', noCam: 'Camera not available: ', tagFront: 'Front', tagBack: 'Back', tagPp: 'Passport',
@@ -244,6 +250,8 @@ const T = {
   isRight: 'Est-ce correct ?', surname: 'Nom', given: 'Prénom', commune: 'Commune', number: 'Numéro',
   nin: 'NIN', birth: 'Date de naissance', sex: 'Sexe', expiry: 'Date d\'expiration', cardNo: 'N° de carte', female: 'Féminin', male: 'Masculin',
   ninBox: 'NIN ici', issueDate: 'Date de délivrance', ninSaw: 'Ce que le lecteur NIN a vu',
+  retakeFront: 'Reprendre le recto', retakeBack: 'Reprendre le verso', sameBack: 'identique au verso', notRead: 'non lu',
+  frontLbl: 'Recto', backLbl: 'Verso',
   toBack: 'Continuer vers le verso', send: 'Envoyer', retake: 'Reprendre la photo', contAnyway: 'Continuer quand même', sendAnyway: 'Envoyer quand même', tryAgain: 'Réessayer',
   sent: 'Envoyé', sentOk: 'Votre document a été envoyé.', sentForced: 'Votre document a été envoyé avec les problèmes signalés. Une personne va le vérifier.',
   again: 'Vérifier un autre document', noCam: 'Caméra non disponible : ', tagFront: 'Recto', tagBack: 'Verso', tagPp: 'Passeport',
@@ -268,6 +276,8 @@ const T = {
   isRight: 'هل هذا صحيح؟', surname: 'اللقب', given: 'الاسم', commune: 'البلدية', number: 'الرقم',
   nin: 'رقم التعريف الوطني', birth: 'تاريخ الميلاد', sex: 'الجنس', expiry: 'تاريخ الانتهاء', cardNo: 'رقم البطاقة', female: 'أنثى', male: 'ذكر',
   ninBox: 'رقم التعريف هنا', issueDate: 'تاريخ الإصدار', ninSaw: 'ما رآه قارئ رقم التعريف',
+  retakeFront: 'إعادة تصوير الوجه الأمامي', retakeBack: 'إعادة تصوير الوجه الخلفي', sameBack: 'مطابق للوجه الخلفي', notRead: 'غير مقروء',
+  frontLbl: 'الأمام', backLbl: 'الخلف',
   toBack: 'متابعة إلى الوجه الخلفي', send: 'إرسال', retake: 'إعادة التصوير', contAnyway: 'المتابعة على أي حال', sendAnyway: 'الإرسال على أي حال', tryAgain: 'حاول مرة أخرى',
   sent: 'تم الإرسال', sentOk: 'تم إرسال وثيقتك.', sentForced: 'تم إرسال وثيقتك مع المشاكل المذكورة. سيتحقّق منها شخص.',
   again: 'التحقّق من وثيقة أخرى', noCam: 'الكاميرا غير متاحة: ', tagFront: 'الأمام', tagBack: 'الخلف', tagPp: 'جواز السفر',
@@ -287,6 +297,8 @@ const ISSUE = {
   damage: ['The card looks cracked or broken', 'Damaged cards are usually rejected. You can still send it, or use another document.'],
   pp_unread: ['The passport can\'t be read', 'Show the photo page with the two code lines at the bottom, flat and in focus.'],
   expired: ['Your card has expired', 'Expired cards are usually rejected. You can still send it, or use another document.'],
+  mismatch: ['The front and back don\'t match', 'These details read differently on the two sides. Please retake the photo shown below.'],
+  nin_unread: ['The NIN can\'t be read in full', 'Retake the front with the NIN inside the dashed box, in focus, without reflections.'],
  },
  fr: {
   not_front: ['Nous ne voyons pas le recto de la carte', 'Placez le RECTO de la carte (le côté avec votre photo) dans le cadre.'],
@@ -298,7 +310,9 @@ const ISSUE = {
   back_unread: ['Les lignes de code du verso sont illisibles', 'Gardez tout le verso dans le cadre, net et sans reflets.'],
   damage: ['La carte semble fissurée ou cassée', 'Les cartes abîmées sont souvent refusées. Vous pouvez l\'envoyer quand même ou utiliser un autre document.'],
   pp_unread: ['Le passeport est illisible', 'Montrez la page photo avec les deux lignes de code en bas, à plat et nette.'],
-  expired: ['Votre carte a expiré', 'Les cartes expirées sont souvent refusées. Vous pouvez l\'envoyer quand même ou utiliser un autre document.'],
+  mismatch: ['Le recto et le verso ne correspondent pas', 'Ces informations sont lues différemment sur les deux côtés. Veuillez reprendre la photo indiquée ci-dessous.'],
+  nin_unread: ['Le NIN n\'est pas lisible en entier', 'Reprenez le recto avec le NIN dans le cadre en pointillés, net et sans reflets.'],
+  expired: ['Votre carte a expiré','Les cartes expirées sont souvent refusées. Vous pouvez l\'envoyer quand même ou utiliser un autre document.'],
  },
  ar: {
   not_front: ['لا نرى الوجه الأمامي للبطاقة', 'ضع الوجه الأمامي للبطاقة (الجهة التي فيها صورتك) داخل الإطار.'],
@@ -310,7 +324,9 @@ const ISSUE = {
   back_unread: ['أسطر الرموز في الخلف غير مقروءة', 'أبقِ الوجه الخلفي كله داخل الإطار، واضحاً وبدون انعكاسات.'],
   damage: ['تبدو البطاقة مشقوقة أو مكسورة', 'غالباً ما تُرفض البطاقات التالفة. يمكنك إرسالها على أي حال أو استعمال وثيقة أخرى.'],
   pp_unread: ['جواز السفر غير مقروء', 'أظهر صفحة الصورة مع سطري الرموز في الأسفل، مسطّحة وواضحة.'],
-  expired: ['انتهت صلاحية بطاقتك', 'غالباً ما تُرفض البطاقات المنتهية الصلاحية. يمكنك إرسالها على أي حال أو استعمال وثيقة أخرى.'],
+  mismatch: ['الوجه الأمامي والخلفي غير متطابقين', 'هذه المعلومات تُقرأ بشكل مختلف على الوجهين. يرجى إعادة تصوير الوجه المبيّن أدناه.'],
+  nin_unread: ['رقم التعريف الوطني غير مقروء بالكامل', 'أعد تصوير الوجه الأمامي مع رقم التعريف داخل الإطار المنقّط، واضحاً وبدون انعكاسات.'],
+  expired: ['انتهت صلاحية بطاقتك','غالباً ما تُرفض البطاقات المنتهية الصلاحية. يمكنك إرسالها على أي حال أو استعمال وثيقة أخرى.'],
  },
 };
 
@@ -384,7 +400,7 @@ $('#codeIn').onkeydown = e => { if (e.key === 'Enter') $('#codeGo').click(); };
 
 // ---------------- flow ----------------
 document.querySelectorAll('[data-doc]').forEach(b => b.onclick = () => {
-  S.doc = b.dataset.doc; S.front = S.back = null; S.history = []; S.frontRead = {}; S.ninImg = null;
+  S.doc = b.dataset.doc; S.front = S.back = null; S.history = []; S.frontIssues = [];
   openCam(S.doc === 'id' ? 'front' : 'passport');
 });
 $('#camBack').onclick = () => { stopCam(); show('home'); };
@@ -519,6 +535,18 @@ function renderResult(o) {
     const tx = (ISSUE[LANG] && ISSUE[LANG][i.code]) || ISSUE.en[i.code] || [i.title, i.text];
     const d = document.createElement('div'); d.className = 'issue ' + i.kind;
     d.innerHTML = '<b></b><span></span>'; d.querySelector('b').textContent = tx[0]; d.querySelector('span').textContent = tx[1];
+    (i.diffs || []).forEach(df => {      // front vs back, per field
+      const v = x => x == null ? t('notRead') : (df.field === 'sex' ? (x === 'F' ? t('female') : x === 'M' ? t('male') : x) : x);
+      const l = document.createElement('div'); l.className = 'diff';
+      l.innerHTML = '<b></b><span></span>'; l.querySelector('b').textContent = t(FIELD_KEY[df.field] || df.field);
+      const sp = l.querySelector('span');   // <bdi> keeps each value's own direction (dates stay 1995-08-19 in Arabic)
+      [[t('frontLbl'), v(df.front)], [t('backLbl'), v(df.back)]].forEach(([lab, val], j) => {
+        if (j) sp.appendChild(document.createTextNode('  |  '));
+        sp.appendChild(document.createTextNode(lab + ': '));
+        const bi = document.createElement('bdi'); bi.textContent = val; sp.appendChild(bi);
+      });
+      d.appendChild(l);
+    });
     body.appendChild(d);
   });
   const rd = o.read || {};
@@ -530,6 +558,7 @@ function renderResult(o) {
     box.innerHTML = '<h3></h3>'; box.querySelector('h3').textContent = t('isRight');
     rows.forEach(([k, v]) => {
       const d = document.createElement('div'); d.innerHTML = '<span></span><b dir="auto"></b>'; d.querySelector('span').textContent = t(k); d.querySelector('b').textContent = v; box.appendChild(d);
+      if (rd.match && rd.match[MATCH_KEY[k]]) { const s = document.createElement('small'); s.className = 'same'; s.textContent = t('sameBack'); d.querySelector('span').appendChild(s); }
       if (k === 'nin' && o.ninImg) {   // the exact image the NIN reader read, to compare with the number above
         const im = document.createElement('div'); im.className = 'ninimg';
         im.innerHTML = '<img alt=""><small></small>'; im.querySelector('img').src = 'data:image/png;base64,' + o.ninImg;
@@ -547,27 +576,54 @@ function showResult(step, dataUrl, r) {
   const tag = t(step === 'front' ? 'tagFront' : step === 'back' ? 'tagBack' : 'tagPp');
   if (!r.ok) return renderResult({kind: 'bad', title: t('failed'), sub: r.msg || t('failedSub'), img: dataUrl, tag, issues: [], read: {}, buttons: [[t('tryAgain'), () => openCam(step)]]});
   const issues = r.issues || [];
-  if (step === 'front') { S.frontRead = r.read || {}; S.ninImg = r.nin_img || null; }
-  const ninImg = step === 'passport' ? null : S.ninImg;
-  const rd = Object.assign({}, step === 'back' ? S.frontRead : {}, r.read || {});
   const wrong = issues.some(i => i.kind === 'wrong'), damaged = issues.some(i => i.code === 'damage'),
         red = issues.some(i => i.kind === 'damage');
-  const next = () => {
-    if (step === 'front') { S.front = dataUrl; openCam('back'); }
-    else { if (step === 'back') S.back = dataUrl; else S.front = dataUrl; send(issues, rd, issues.length > 0); }
-  };
-  let kind, title, sub, buttons;
-  if (!issues.length) {
-    kind = 'ok'; title = step === 'front' ? t('okFront') : t('okAll'); sub = t('okSub');
-    buttons = [[step === 'front' ? t('toBack') : t('send'), next], [t('retake'), () => openCam(step), true]];
-  } else {
-    kind = red || wrong ? 'bad' : 'warn';
-    title = damaged && !wrong ? t('damaged') : t('problem'); sub = damaged && !wrong ? t('damagedSub') : t('problemSub');
-    buttons = [[t('retake'), () => openCam(step)]];
-    if (!wrong) buttons.push([step === 'front' ? t('contAnyway') : t('sendAnyway'), next, true]);
+  const look = () => ({kind: red || wrong ? 'bad' : 'warn',
+                       title: damaged && !wrong ? t('damaged') : t('problem'),
+                       sub: damaged && !wrong ? t('damagedSub') : t('problemSub')});
+
+  // FRONT: photo problems only, no details yet (user: nothing is shown until both sides are in and they match)
+  if (step === 'front') {
+    S.front = dataUrl; S.frontIssues = issues;
+    const goOn = () => { if (S.back) finalCheck(); else openCam('back'); };   // back already taken -> re-check both
+    if (!issues.length) return goOn();
+    const buttons = [[t('retake'), () => openCam('front')]];
+    if (!wrong) buttons.push([t('contAnyway'), goOn, true]);
+    return renderResult(Object.assign(look(), {img: dataUrl, tag, issues, read: {}, buttons}));
   }
-  renderResult({kind, title, sub, img: dataUrl, tag, issues, read: rd, buttons, ninImg});
+
+  // PASSPORT: one photo
+  if (step === 'passport') {
+    S.front = dataUrl;
+    const buttons = issues.length ? [[t('retake'), () => openCam('passport')], [t('sendAnyway'), () => send(issues, r.read, true), true]]
+                                  : [[t('send'), () => send(issues, r.read, false)], [t('retake'), () => openCam('passport'), true]];
+    return renderResult(Object.assign(issues.length ? look() : {kind: 'ok', title: t('okAll'), sub: t('okSub')},
+                                      {img: dataUrl, tag, issues, read: r.read, buttons}));
+  }
+
+  // BACK = the final answer: both sides checked, front details compared with the back
+  S.back = wrong ? null : dataUrl;
+  const all = (S.frontIssues || []).filter(i => i.kind !== 'wrong').concat(issues);
+  const rd = r.read || {};
+  const FRONT_CODES = ['unreadable', 'face_light', 'no_face', 'nin_unread', 'not_front'];
+  const needFront = all.some(i => FRONT_CODES.includes(i.code) || (i.code === 'mismatch' && (i.redo || []).includes('front')) || (i.code === 'damage' && i.side === 'front'));
+  const needBack = all.some(i => ['back_unread', 'front_again'].includes(i.code) || (i.code === 'mismatch' && (i.redo || []).includes('back')) || (i.code === 'damage' && i.side === 'back'));
+  const anyRed = all.some(i => i.kind === 'damage' || i.kind === 'wrong'), anyDamage = all.some(i => i.code === 'damage');
+  let o;
+  if (!all.length) {
+    o = {kind: 'ok', title: t('okAll'), sub: t('okSub'), buttons: [[t('send'), () => send([], rd, false)], [t('retakeBack'), () => openCam('back'), true]]};
+  } else {
+    const buttons = [];
+    if (needFront) buttons.push([t('retakeFront'), () => openCam('front')]);
+    if (needBack || !needFront) buttons.push([t('retakeBack'), () => openCam('back'), buttons.length > 0]);
+    if (!wrong) buttons.push([t('sendAnyway'), () => send(all, rd, true), true]);
+    o = {kind: anyRed ? 'bad' : 'warn', title: anyDamage ? t('damaged') : t('problem'), sub: anyDamage ? t('damagedSub') : t('problemSub'), buttons};
+  }
+  renderResult(Object.assign(o, {img: dataUrl, tag, issues: all, read: rd, ninImg: r.nin_img}));
 }
+function finalCheck() { S.step = 'back'; checkPhoto(S.back); }
+const FIELD_KEY = {dob: 'birth', expiry: 'expiry', sex: 'sex', card_no: 'cardNo'};
+const MATCH_KEY = {birth: 'dob', expiry: 'expiry', sex: 'sex', cardNo: 'card_no'};
 
 async function send(issues, read, forced) {
   show('wait');
