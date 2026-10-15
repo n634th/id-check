@@ -216,7 +216,7 @@ const T = {
   failed: 'Could not check the photo', failedSub: 'Please try again',
   isRight: 'Is this right?', surname: 'Surname', given: 'Given name', commune: 'Commune', number: 'Number',
   nin: 'NIN', birth: 'Date of birth', sex: 'Sex', expiry: 'Expiry date', cardNo: 'Card number', female: 'Female', male: 'Male',
-  ninBox: 'NIN here',
+  ninBox: 'NIN here', issueDate: 'Issue date',
   toBack: 'Continue to the back', send: 'Send', retake: 'Retake photo', contAnyway: 'Continue anyway', sendAnyway: 'Send anyway', tryAgain: 'Try again',
   sent: 'Sent', sentOk: 'Your document was sent.', sentForced: 'Your document was sent with the problems noted. A person will check it.',
   again: 'Check another document', noCam: 'Camera not available: ', tagFront: 'Front', tagBack: 'Back', tagPp: 'Passport',
@@ -240,7 +240,7 @@ const T = {
   failed: 'Impossible de vérifier la photo', failedSub: 'Veuillez réessayer',
   isRight: 'Est-ce correct ?', surname: 'Nom', given: 'Prénom', commune: 'Commune', number: 'Numéro',
   nin: 'NIN', birth: 'Date de naissance', sex: 'Sexe', expiry: 'Date d\'expiration', cardNo: 'N° de carte', female: 'Féminin', male: 'Masculin',
-  ninBox: 'NIN ici',
+  ninBox: 'NIN ici', issueDate: 'Date de délivrance',
   toBack: 'Continuer vers le verso', send: 'Envoyer', retake: 'Reprendre la photo', contAnyway: 'Continuer quand même', sendAnyway: 'Envoyer quand même', tryAgain: 'Réessayer',
   sent: 'Envoyé', sentOk: 'Votre document a été envoyé.', sentForced: 'Votre document a été envoyé avec les problèmes signalés. Une personne va le vérifier.',
   again: 'Vérifier un autre document', noCam: 'Caméra non disponible : ', tagFront: 'Recto', tagBack: 'Verso', tagPp: 'Passeport',
@@ -264,7 +264,7 @@ const T = {
   failed: 'تعذّر التحقّق من الصورة', failedSub: 'يرجى المحاولة مرة أخرى',
   isRight: 'هل هذا صحيح؟', surname: 'اللقب', given: 'الاسم', commune: 'البلدية', number: 'الرقم',
   nin: 'رقم التعريف الوطني', birth: 'تاريخ الميلاد', sex: 'الجنس', expiry: 'تاريخ الانتهاء', cardNo: 'رقم البطاقة', female: 'أنثى', male: 'ذكر',
-  ninBox: 'رقم التعريف هنا',
+  ninBox: 'رقم التعريف هنا', issueDate: 'تاريخ الإصدار',
   toBack: 'متابعة إلى الوجه الخلفي', send: 'إرسال', retake: 'إعادة التصوير', contAnyway: 'المتابعة على أي حال', sendAnyway: 'الإرسال على أي حال', tryAgain: 'حاول مرة أخرى',
   sent: 'تم الإرسال', sentOk: 'تم إرسال وثيقتك.', sentForced: 'تم إرسال وثيقتك مع المشاكل المذكورة. سيتحقّق منها شخص.',
   again: 'التحقّق من وثيقة أخرى', noCam: 'الكاميرا غير متاحة: ', tagFront: 'الأمام', tagBack: 'الخلف', tagPp: 'جواز السفر',
@@ -520,8 +520,8 @@ function renderResult(o) {
   });
   const rd = o.read || {};
   const sex = rd.sex === 'F' ? t('female') : rd.sex === 'M' ? t('male') : null;
-  const rows = [['surname', rd.last], ['given', rd.first], ['nin', rd.nin], ['commune', rd.commune], ['birth', rd.birth],
-                ['sex', sex], ['expiry', rd.expiry], ['cardNo', rd.doc_number], ['number', rd.number]].filter(x => x[1]);
+  const rows = [['surname', rd.last], ['given', rd.first], ['nin', rd.nin], ['cardNo', rd.card_no], ['birth', rd.dob],
+                ['sex', sex], ['commune', rd.commune], ['issueDate', rd.issue], ['expiry', rd.expiry], ['number', rd.number]].filter(x => x[1]);
   if (rows.length) {
     const box = document.createElement('div'); box.className = 'read';
     box.innerHTML = '<h3></h3>'; box.querySelector('h3').textContent = t('isRight');
