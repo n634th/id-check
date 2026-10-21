@@ -50,6 +50,10 @@ header img{height:46px;width:auto;display:block}
 .doc:hover{border-color:var(--green)}
 .doc .shape{flex:none;width:52px;height:34px;border-radius:6px;border:2px solid var(--green2);position:relative}
 .doc .shape.pp{width:38px;height:50px}
+.doc .shape.chip::before{content:"";position:absolute;left:8px;top:7px;width:14px;height:11px;border-radius:3px;background:var(--green2)}
+.keyform{margin-top:14px;background:var(--panel);border-radius:14px;padding:12px 14px;display:grid;gap:6px}
+.keyform label{font-size:13px;color:var(--dim);margin-top:6px}
+.keyform input{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--bg2);color:var(--text);font-size:18px;letter-spacing:1px}
 .doc .shape::after{content:"";position:absolute;left:6px;right:6px;bottom:6px;height:3px;border-radius:2px;background:var(--green2);opacity:.7}
 .doc strong{display:block;font-size:17px}
 .doc small{display:block;color:var(--dim);font-size:14px}
@@ -106,7 +110,10 @@ footer{margin-top:auto;padding:24px 0 calc(env(safe-area-inset-bottom) + 18px);c
 .small{background:rgba(20,28,40,.7);border:1px solid rgba(255,255,255,.25);border-radius:12px;padding:10px 12px;font-size:14px;cursor:pointer;min-width:88px}
 
 /* wait */
-#wait{align-items:center;justify-content:center;text-align:center}
+#wait,#chip{align-items:center;justify-content:center;text-align:center}
+#chip .wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100%}
+#chip .card{width:132px;height:84px;border:3px solid var(--green2);border-radius:12px;margin-bottom:24px;animation:pulse 1.4s ease-in-out infinite}
+#chip h2{font-size:20px;line-height:1.3;max-width:320px} #chip p{color:var(--dim);margin-top:10px;max-width:320px}
 #wait img{height:64px;animation:pulse 1.4s ease-in-out infinite}
 @keyframes pulse{50%{opacity:.5;transform:scale(.97)}}
 #wait p{color:var(--dim);margin-top:18px}
@@ -117,11 +124,12 @@ footer{margin-top:auto;padding:24px 0 calc(env(safe-area-inset-bottom) + 18px);c
 /* result */
 .banner{display:flex;gap:12px;align-items:center;border-radius:var(--radius);padding:16px;margin-top:16px;background:var(--panel)}
 .banner .dot{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-weight:900;font-size:20px;color:#fff}
-.banner.ok .dot{background:var(--green)} .banner.warn .dot{background:var(--amber);color:#2b2b2b} .banner.bad .dot{background:var(--red)}
+.banner.info .dot{background:var(--green2)} .banner.ok .dot{background:var(--green)} .banner.warn .dot{background:var(--amber);color:#2b2b2b} .banner.bad .dot{background:var(--red)}
 .banner h2{font-size:19px;line-height:1.25}
 .banner p{color:var(--dim);font-size:14px}
 .shot{position:relative;margin-top:14px}
 .shot img{width:100%;border-radius:14px;display:block;border:1px solid var(--line)}
+.shot.portrait img{width:auto;max-width:100%;max-height:300px;margin:0 auto}
 .shot span{position:absolute;top:10px;inset-inline-start:10px;background:rgba(20,28,40,.8);border-radius:999px;padding:4px 10px;font-size:13px;font-weight:600}
 .issue{border-radius:14px;padding:14px;margin-top:10px;background:var(--panel);border-inline-start:4px solid var(--amber)}
 .issue.damage,.issue.wrong,.issue.face{border-inline-start-color:var(--red)}
@@ -175,6 +183,7 @@ footer{margin-top:auto;padding:24px 0 calc(env(safe-area-inset-bottom) + 18px);c
     <label class="ck" id="ckMainL"><input type="checkbox" id="ckMain"><span data-t="consentMain"></span></label>
   </div>
   <div class="choice" id="docChoice" style="display:none">
+    <button class="doc" data-doc="chip" id="docChip" style="display:none"><i class="shape chip"></i><span><strong data-t="docChip"></strong><small data-t="docChipSub"></small></span><span class="go">&rsaquo;</span></button>
     <button class="doc" data-doc="id"><i class="shape"></i><span><strong data-t="docId"></strong><small data-t="docIdSub"></small></span><span class="go">&rsaquo;</span></button>
     <button class="doc" data-doc="passport"><i class="shape pp"></i><span><strong data-t="docPp"></strong><small data-t="docPpSub"></small></span><span class="go">&rsaquo;</span></button>
   </div>
@@ -202,6 +211,11 @@ footer{margin-top:auto;padding:24px 0 calc(env(safe-area-inset-bottom) + 18px);c
   <div class="track"></div>
 </section>
 
+<section class="screen" id="chip"><div class="wrap">
+  <div class="card"></div><h2 data-t="chipHold"></h2><p data-t="chipHoldSub"></p>
+  <button class="btn ghost" id="chipCancel" data-t="chipCancel" style="max-width:320px"></button>
+</div></section>
+
 <section class="screen" id="res"><div class="wrap">
   <div class="banner" id="banner"><div class="dot"></div><div><h2 id="resTitle"></h2><p id="resSub"></p></div></div>
   <div class="shot"><img id="shot" alt=""><span id="shotTag"></span></div>
@@ -223,7 +237,7 @@ const T = {
   heroTitle: 'Check your ID photo <em>before</em> you send it',
   heroText: 'Take a photo of your document. iDz checks it in seconds and tells you if something is wrong, so it does not get rejected later.',
   step1: 'Photo of the front', step2: 'Photo of the back', step3: 'Selfie, then send',
-  selfie: 'Selfie', selfieSub: 'Only used to check you are the person on the document', toSelfie: 'Continue to the selfie',
+  selfie: 'Selfie', selfieSub: 'Only used to check you are the person on the document', toSelfie: 'Continue to the selfie', nfcOffTitle: 'NFC is switched off', nfcOffSub: 'Turn on NFC in your phone settings, then come back to iDz.', nfcOpen: 'Open the NFC settings', useOcr: 'Use photos instead', docChip: 'ID card - chip (NFC)', docChipSub: 'One photo of the back, then the card against the phone', docIdOcr: 'ID card - photos (OCR)', mrzTitle: 'Back of the card', mrzSub: 'The code lines at the bottom open the chip', keyOk: 'Numbers read from the back', keyBad: 'The code lines could not be read', keySub: 'Check them, then read the chip. You can correct them.', keyDoc: 'Card number', keyBirth: 'Birth date', keyExpiry: 'Expiry date', keyWrong: 'Check the card number (9 characters) and both dates (YYYY-MM-DD).', keyEdit: 'Check the numbers', toChip: 'Read the card chip', chipTitle: 'Read the chip of your card', chipSub: 'Your phone can read the chip inside your card: the data and photo signed by the State.', chipNoKey: 'The code lines on the back were not read, so the chip can not be opened. You can retake the back or skip.', chipRead: 'Read the chip', chipSkip: 'Skip, go to the selfie', chipHold: 'Hold your card flat against the back of the phone', chipHoldSub: 'Keep it still for a few seconds, until the phone vibrates.', chipCancel: 'Cancel', chipOk: 'Chip read - data signed by the State', chipOkSub: 'The selfie will be compared with the chip photo', chipBroken: 'Chip read - but its data does not match its signature', chipBad: 'The chip could not be read', chipRetry: 'Try again', tagChip: 'Chip photo', chipCompare: 'Chip compared with the photos', same: 'same', differs: 'different', blood: 'Blood group', 
   hFace: 'Face in the oval? Tap the button', sStraight: 'Look straight at the camera', sLeft: 'Slowly turn your head to your LEFT',
   sRight: 'Slowly turn your head to your RIGHT', tagSelfie: 'Selfie', okFace: 'It\'s you - all good', faceBad: 'The face check did not pass',
   faceBadSub: 'Please try the selfie again', retakeSelfie: 'Try the selfie again', retakeDoc: 'Retake the document',
@@ -232,7 +246,7 @@ const T = {
   codeLabel: 'Access code', codeText: 'Enter the code you were given to use iDz.', continue: 'Continue',
   docId: 'National ID card', docIdSub: 'Front, then back', docPp: 'Passport', docPpSub: 'Photo page with the code lines',
   online: 'Checking service online', offline: 'Checking service offline - photos cannot be checked right now',
-  consentMain: 'I agree that iDz processes the photos of my document and my selfie to check my identity, as described in the <a class="pv" href="privacy.html" target="_blank">privacy notice</a>.',
+  consentMain: 'I agree that iDz processes the photos of my document, its chip (if I choose to read it) and my selfie to check my identity, as described in the <a class="pv" href="privacy.html" target="_blank">privacy notice</a>.',
   consentTrain: 'Optional: I agree that my photos are kept up to 12 months to improve iDz.', consentNeed: 'Tick the first box to continue.', privacyLink: 'Privacy',
   badCode: 'That code is not right.', footer: 'iDz - document photo check',
   back: 'Back', autoOn: 'Auto: on', autoOff: 'Auto: off', checking: 'Checking your photo...',
@@ -257,7 +271,7 @@ const T = {
   heroTitle: 'Vérifiez la photo de votre pièce <em>avant</em> de l\'envoyer',
   heroText: 'Prenez votre document en photo. iDz le vérifie en quelques secondes et vous dit s\'il y a un problème, pour éviter un refus plus tard.',
   step1: 'Photo du recto', step2: 'Photo du verso', step3: 'Selfie, puis envoi',
-  selfie: 'Selfie', selfieSub: 'Sert uniquement à vérifier que vous êtes la personne du document', toSelfie: 'Continuer vers le selfie',
+  selfie: 'Selfie', selfieSub: 'Sert uniquement à vérifier que vous êtes la personne du document', toSelfie: 'Continuer vers le selfie', nfcOffTitle: 'Le NFC est désactivé', nfcOffSub: 'Activez le NFC dans les réglages du téléphone, puis revenez dans iDz.', nfcOpen: 'Ouvrir les réglages NFC', useOcr: 'Utiliser les photos à la place', docChip: 'Carte d\'identité - puce (NFC)', docChipSub: 'Une photo du verso, puis la carte contre le téléphone', docIdOcr: 'Carte d\'identité - photos (OCR)', mrzTitle: 'Verso de la carte', mrzSub: 'Les lignes de code en bas ouvrent la puce', keyOk: 'Numéros lus sur le verso', keyBad: 'Les lignes de code n\'ont pas pu être lues', keySub: 'Vérifiez-les, puis lisez la puce. Vous pouvez les corriger.', keyDoc: 'N° de carte', keyBirth: 'Date de naissance', keyExpiry: 'Date d\'expiration', keyWrong: 'Vérifiez le n° de carte (9 caractères) et les deux dates (AAAA-MM-JJ).', keyEdit: 'Vérifier les numéros', toChip: 'Lire la puce de la carte', chipTitle: 'Lire la puce de votre carte', chipSub: 'Votre téléphone peut lire la puce de votre carte : les données et la photo signées par l\'État.', chipNoKey: 'Les lignes de code au verso n\'ont pas été lues, la puce ne peut pas être ouverte. Reprenez le verso ou passez.', chipRead: 'Lire la puce', chipSkip: 'Passer, aller au selfie', chipHold: 'Posez votre carte à plat contre le dos du téléphone', chipHoldSub: 'Ne bougez pas pendant quelques secondes, jusqu\'à la vibration.', chipCancel: 'Annuler', chipOk: 'Puce lue - données signées par l\'État', chipOkSub: 'Le selfie sera comparé à la photo de la puce', chipBroken: 'Puce lue - mais ses données ne correspondent pas à leur signature', chipBad: 'La puce n\'a pas pu être lue', chipRetry: 'Réessayer', tagChip: 'Photo de la puce', chipCompare: 'Puce comparée aux photos', same: 'identique', differs: 'différent', blood: 'Groupe sanguin', 
   hFace: 'Visage dans l\'ovale ? Appuyez sur le bouton', sStraight: 'Regardez droit vers la caméra', sLeft: 'Tournez lentement la tête vers votre GAUCHE',
   sRight: 'Tournez lentement la tête vers votre DROITE', tagSelfie: 'Selfie', okFace: 'C\'est bien vous - tout est bon', faceBad: 'La vérification du visage a échoué',
   faceBadSub: 'Veuillez refaire le selfie', retakeSelfie: 'Refaire le selfie', retakeDoc: 'Reprendre le document',
@@ -266,7 +280,7 @@ const T = {
   codeLabel: 'Code d\'accès', codeText: 'Entrez le code qui vous a été donné pour utiliser iDz.', continue: 'Continuer',
   docId: 'Carte d\'identité nationale', docIdSub: 'Recto, puis verso', docPp: 'Passeport', docPpSub: 'Page photo avec les lignes de code',
   online: 'Service de vérification en ligne', offline: 'Service hors ligne - les photos ne peuvent pas être vérifiées pour le moment',
-  consentMain: 'J\'accepte qu\'iDz traite les photos de mon document et mon selfie pour vérifier mon identité, comme décrit dans la <a class="pv" href="privacy.html" target="_blank">politique de confidentialité</a>.',
+  consentMain: 'J\'accepte qu\'iDz traite les photos de mon document, sa puce (si je choisis de la lire) et mon selfie pour vérifier mon identité, comme décrit dans la <a class="pv" href="privacy.html" target="_blank">politique de confidentialité</a>.',
   consentTrain: 'Facultatif : j\'accepte que mes photos soient conservées jusqu\'à 12 mois pour améliorer iDz.', consentNeed: 'Cochez la première case pour continuer.', privacyLink: 'Confidentialité',
   badCode: 'Ce code n\'est pas correct.', footer: 'iDz - vérification de photo de document',
   back: 'Retour', autoOn: 'Auto : oui', autoOff: 'Auto : non', checking: 'Vérification de votre photo...',
@@ -291,7 +305,7 @@ const T = {
   heroTitle: 'تحقّق من صورة بطاقتك <em>قبل</em> إرسالها',
   heroText: 'التقط صورة لوثيقتك. يتحقّق منها iDz في ثوانٍ ويخبرك إن كانت هناك مشكلة، حتى لا تُرفض لاحقاً.',
   step1: 'صورة الوجه الأمامي', step2: 'صورة الوجه الخلفي', step3: 'صورة سيلفي ثم الإرسال',
-  selfie: 'صورة سيلفي', selfieSub: 'تُستعمل فقط للتحقّق من أنك صاحب الوثيقة', toSelfie: 'متابعة إلى صورة السيلفي',
+  selfie: 'صورة سيلفي', selfieSub: 'تُستعمل فقط للتحقّق من أنك صاحب الوثيقة', toSelfie: 'متابعة إلى صورة السيلفي', nfcOffTitle: 'خاصية NFC معطّلة', nfcOffSub: 'فعّل NFC من إعدادات الهاتف، ثم عُد إلى iDz.', nfcOpen: 'فتح إعدادات NFC', useOcr: 'استعمال الصور بدلاً من ذلك', docChip: 'بطاقة التعريف - الشريحة (NFC)', docChipSub: 'صورة واحدة للوجه الخلفي، ثم البطاقة على الهاتف', docIdOcr: 'بطاقة التعريف - الصور (OCR)', mrzTitle: 'الوجه الخلفي للبطاقة', mrzSub: 'أسطر الرموز في الأسفل تفتح الشريحة', keyOk: 'الأرقام المقروءة من الوجه الخلفي', keyBad: 'تعذّرت قراءة أسطر الرموز', keySub: 'تحقّق منها ثم اقرأ الشريحة. يمكنك تصحيحها.', keyDoc: 'رقم البطاقة', keyBirth: 'تاريخ الميلاد', keyExpiry: 'تاريخ الانتهاء', keyWrong: 'تحقّق من رقم البطاقة (9 رموز) ومن التاريخين (YYYY-MM-DD).', keyEdit: 'التحقّق من الأرقام', toChip: 'قراءة شريحة البطاقة', chipTitle: 'قراءة شريحة بطاقتك', chipSub: 'يمكن لهاتفك قراءة الشريحة داخل بطاقتك: البيانات والصورة الموقّعة من الدولة.', chipNoKey: 'لم تُقرأ أسطر الرموز في الوجه الخلفي، لذا لا يمكن فتح الشريحة. أعد تصوير الوجه الخلفي أو تخطَّ هذه الخطوة.', chipRead: 'قراءة الشريحة', chipSkip: 'تخطٍّ، الانتقال إلى السيلفي', chipHold: 'ضع بطاقتك مسطّحة على ظهر الهاتف', chipHoldSub: 'لا تحرّكها لبضع ثوانٍ حتى يهتزّ الهاتف.', chipCancel: 'إلغاء', chipOk: 'تمت قراءة الشريحة - بيانات موقّعة من الدولة', chipOkSub: 'ستُقارَن صورة السيلفي بصورة الشريحة', chipBroken: 'تمت قراءة الشريحة - لكن بياناتها لا تطابق توقيعها', chipBad: 'تعذّرت قراءة الشريحة', chipRetry: 'إعادة المحاولة', tagChip: 'صورة الشريحة', chipCompare: 'مقارنة الشريحة بالصور', same: 'مطابق', differs: 'مختلف', blood: 'فصيلة الدم', 
   hFace: 'وجهك داخل الإطار البيضوي؟ اضغط على الزر', sStraight: 'انظر مباشرة إلى الكاميرا', sLeft: 'أدر رأسك ببطء إلى جهة اليسار',
   sRight: 'أدر رأسك ببطء إلى جهة اليمين', tagSelfie: 'سيلفي', okFace: 'إنه أنت - كل شيء جيّد', faceBad: 'لم ينجح التحقّق من الوجه',
   faceBadSub: 'يرجى إعادة صورة السيلفي', retakeSelfie: 'إعادة صورة السيلفي', retakeDoc: 'إعادة تصوير الوثيقة',
@@ -300,7 +314,7 @@ const T = {
   codeLabel: 'رمز الدخول', codeText: 'أدخل الرمز الذي أُعطي لك لاستخدام iDz.', continue: 'متابعة',
   docId: 'بطاقة التعريف الوطنية', docIdSub: 'الوجه الأمامي ثم الخلفي', docPp: 'جواز السفر', docPpSub: 'صفحة الصورة مع أسطر الرموز',
   online: 'خدمة التحقّق متصلة', offline: 'خدمة التحقّق غير متصلة - لا يمكن التحقّق من الصور الآن',
-  consentMain: 'أوافق على أن يعالج iDz صور وثيقتي وصورة السيلفي للتحقّق من هويتي، كما هو موضّح في <a class="pv" href="privacy.html" target="_blank">سياسة الخصوصية</a>.',
+  consentMain: 'أوافق على أن يعالج iDz صور وثيقتي وشريحتها (إن اخترت قراءتها) وصورة السيلفي للتحقّق من هويتي، كما هو موضّح في <a class="pv" href="privacy.html" target="_blank">سياسة الخصوصية</a>.',
   consentTrain: 'اختياري: أوافق على الاحتفاظ بصوري لمدة تصل إلى 12 شهراً لتحسين iDz.', consentNeed: 'ضع علامة في الخانة الأولى للمتابعة.', privacyLink: 'الخصوصية',
   badCode: 'هذا الرمز غير صحيح.', footer: 'iDz - التحقّق من صور الوثائق',
   back: 'رجوع', autoOn: 'تلقائي: نعم', autoOff: 'تلقائي: لا', checking: 'جارٍ التحقّق من صورتك...',
@@ -431,10 +445,10 @@ async function boot() {
     try { API = ((await (await fetch('config.json?t=' + Date.now(), {cache: 'no-store'})).json()).api || '').replace(/\/$/, ''); }
     catch (e) { API = ''; }
   }
-  if (!CODE) return askCode();
-  const h = await health();
+  const h = await health();   // open site: no code; the code box only comes back if the server asks for one
   if (h && h.code === 'bad_access') return askCode(t('badCode'));
   $('#codeBox').style.display = 'none'; $('#docChoice').style.display = 'grid'; $('#consent').style.display = 'grid';
+  if (NFC) { $('#docChip').style.display = 'flex'; document.querySelector('[data-doc=id] strong').dataset.t = 'docIdOcr'; setLang(LANG); }
   setStatus(h && h.ok ? 'online' : 'offline');
 }
 function setStatus(k) {
@@ -459,17 +473,19 @@ $('#ckMain').onchange = () => { $('#ckMainL').classList.remove('need'); $('#home
 document.querySelectorAll('[data-doc]').forEach(b => b.onclick = () => {
   if (!$('#ckMain').checked) { $('#ckMainL').classList.add('need'); $('#homeErr').textContent = t('consentNeed'); return; }
   S.consent = {at: new Date().toISOString(), train: false, notice: '2026-10-18'};
-  S.doc = b.dataset.doc; S.front = S.back = null; S.history = []; S.frontIssues = [];
-  openCam(S.doc === 'id' ? 'front' : 'passport');
+  S.route = b.dataset.doc === 'chip' ? 'chip' : 'ocr'; S.doc = b.dataset.doc === 'passport' ? 'passport' : 'id';
+  S.front = S.back = null; S.history = []; S.frontIssues = []; S.chip = S.chipPhoto = null; S.chipTried = S.route === 'ocr';
+  if (S.route === 'chip' && nfcState() !== 'on') return nfcOff(() => openCam('mrz'));
+  openCam(S.route === 'chip' ? 'mrz' : S.doc === 'id' ? 'front' : 'passport');
 });
 $('#camBack').onclick = () => { stopCam(); show('home'); };
 $('#autoBtn').onclick = () => { S.auto = !S.auto; $('#autoBtn').textContent = S.auto ? t('autoOn') : t('autoOff'); };
 $('#again').onclick = () => { S.step = null; show('home'); };
 
 function setCamText() {
-  const m = {front: ['front', 'frontSub'], back: ['backSide', 'backSub'], passport: ['pp', 'ppSub'], selfie: ['selfie', 'selfieSub']}[S.step];
+  const m = {front: ['front', 'frontSub'], back: ['backSide', 'backSub'], mrz: ['mrzTitle', 'mrzSub'], passport: ['pp', 'ppSub'], selfie: ['selfie', 'selfieSub']}[S.step];
   $('#camTitle').textContent = t(m[0]); $('#camSub').textContent = t(m[1]);
-  const order = S.doc === 'id' ? ['front', 'back', 'selfie'] : ['passport', 'selfie'], at = order.indexOf(S.step);
+  const order = S.route === 'chip' ? ['mrz', 'selfie'] : S.doc === 'id' ? ['front', 'back', 'selfie'] : ['passport', 'selfie'], at = order.indexOf(S.step);
   $('#camBar').innerHTML = order.map((_, i) => '<span class="' + (i <= at ? 'on' : '') + '"></span>').join('');
 }
 const frameClass = good => (good == null ? '' : good ? 'good' : 'bad') + (S.step === 'front' ? ' front' : S.step === 'selfie' ? ' selfie' : '');
@@ -617,12 +633,84 @@ async function selfieRun() {
 async function checkSelfie(frames) {
   show('wait');
   let r;
-  try { r = await api('api/check', {step: 'selfie', front: S.front, frames}); } catch (e) { if (e.message === 'access code') return; r = {ok: false, msg: e.message}; }
+  try { r = await api('api/check', {step: 'selfie', front: S.chipPhoto || S.front, frames}); } catch (e) { if (e.message === 'access code') return; r = {ok: false, msg: e.message}; }
   S.history.push({step: 'selfie', issues: (r.issues || []).map(i => i.code), ms: r.ms});
   showSelfie(r);
 }
 // the document is done (sent forward with its own issues) -> the selfie decides whether it can be sent
-function toSelfie(issues, read, forced) { S.pend = {issues, read, forced}; S.selfie = null; S.face = null; openCam('selfie'); }
+function toSelfie(issues, read, forced) {
+  S.pend = {issues, read, forced};
+  goSelfie();
+}
+function goSelfie() { S.selfie = null; S.face = null; openCam('selfie'); }
+
+// ---------------- NFC chip (only inside the iDz Android app: window.IDzNative) ----------------
+// Key = card number + birth + expiry from the back's code lines (server read.chip_key, check digits passed).
+const nfcState = () => { try { return !window.IDzNative ? 'none' : IDzNative.nfcState ? IDzNative.nfcState() : IDzNative.hasNfc() ? 'on' : 'none'; } catch (e) { return 'none'; } };
+const NFC = nfcState() !== 'none';
+// NFC switched off: send the person to the phone settings; the app calls idzResume() when they come back
+function nfcOff(then) {
+  S.afterNfc = then;
+  renderResult({kind: 'warn', title: t('nfcOffTitle'), sub: t('nfcOffSub'), img: null, issues: [], read: {},
+                buttons: [[t('nfcOpen'), () => IDzNative.openNfcSettings()], [t('useOcr'), useOcr, true]]});
+}
+function useOcr() { S.afterNfc = null; S.route = 'ocr'; S.chipTried = true; openCam('front'); }
+window.idzResume = () => { if (S.afterNfc && nfcState() === 'on') { const f = S.afterNfc; S.afterNfc = null; f(); } };
+function chipStep() {
+  const k = (S.pend.read || {}).chip_key;
+  renderResult({kind: 'info', title: t('chipTitle'), sub: t(k ? 'chipSub' : 'chipNoKey'), img: null, issues: [], read: {},
+                buttons: k ? [[t('chipRead'), readChip], [t('chipSkip'), skipChip, true]]
+                           : [[t('retakeBack'), () => openCam('back')], [t('chipSkip'), skipChip, true]]});
+}
+function skipChip() { S.chipTried = true; goSelfie(); }
+function readChip() {
+  const k = S.pend.read.chip_key;
+  if (nfcState() === 'off') return nfcOff(readChip);
+  show('chip');
+  IDzNative.readChip(k.doc, k.birth, k.expiry, API || location.origin, CODE);
+}
+$('#chipCancel').onclick = () => { try { IDzNative.cancelChip(); } catch (e) {} S.route === 'chip' ? keyScreen() : chipStep(); };
+// NFC route: the numbers read from the back, filled in and editable, then the chip
+function keyScreen() {
+  const r = S.keyResp || {}, rd = r.read || {}, ok = !!rd.chip_key;
+  if (!r.ok) return renderResult({kind: 'bad', title: t('failed'), sub: r.msg || t('failedSub'), img: S.back, tag: t('tagBack'), issues: [], read: {},
+                                 buttons: [[t('tryAgain'), () => openCam('mrz')]]});
+  renderResult({kind: ok ? 'ok' : 'warn', title: t(ok ? 'keyOk' : 'keyBad'), sub: t('keySub'), img: S.back, tag: t('tagBack'), issues: [], read: {},
+                buttons: [[t('chipRead'), goChip], [t('retakeBack'), () => openCam('mrz'), true]]});
+  const f = document.createElement('div'); f.className = 'keyform';
+  [['kDoc', 'keyDoc', rd.doc], ['kBirth', 'keyBirth', rd.birth], ['kExp', 'keyExpiry', rd.expiry]].forEach(([id, lab, v]) => {
+    const l = document.createElement('label'); l.htmlFor = id; l.textContent = t(lab);
+    const i = document.createElement('input'); i.id = id; i.value = v || ''; i.dir = 'ltr'; i.autocomplete = 'off';
+    if (id !== 'kDoc') { i.placeholder = 'YYYY-MM-DD'; i.inputMode = 'numeric'; }
+    f.appendChild(l); f.appendChild(i);
+  });
+  $('#resBody').appendChild(f);
+}
+function goChip() {
+  const doc = $('#kDoc').value.trim().toUpperCase(), b = $('#kBirth').value.trim(), e = $('#kExp').value.trim();
+  const d = /^\d{4}-\d{2}-\d{2}$/, ymd = x => x.slice(2, 4) + x.slice(5, 7) + x.slice(8, 10);
+  if (!/^[A-Z0-9]{9}$/.test(doc) || !d.test(b) || !d.test(e)) { $('#resSub').textContent = t('keyWrong'); return; }
+  S.pend = {issues: [], read: {chip_key: {doc, birth: ymd(b), expiry: ymd(e)}}, forced: false};
+  readChip();
+}
+window.idzChip = r => {
+  if (!$('#chip').classList.contains('on')) return;
+  if (!r || !r.ok) return renderResult({kind: 'bad', title: t('chipBad'), sub: (r && r.msg) || '', img: null, issues: [], read: {},
+                                        buttons: [[t('chipRetry'), readChip], S.route === 'chip' ? [t('keyEdit'), keyScreen, true] : [t('chipSkip'), skipChip, true]]});
+  S.chipTried = true; S.chip = {intact: r.intact, how: r.how, signer: r.issuer};
+  S.chipPhoto = r.photo ? 'data:image/jpeg;base64,' + r.photo : null;
+  const c = r.data || {}, o = S.pend.read || {};
+  const both = (a, b) => [a, b].filter(Boolean).join('  ');
+  const read = {last: both(c.last, c.lastAr), first: both(c.first, c.firstAr), nin: c.nin, card_no: c.doc, dob: c.dob,
+                sex: c.sex, commune: both(c.birthPlace, c.birthPlaceAr), issue: c.issue, expiry: c.expiry};
+  const cmp = (a, b) => !a || !b ? t('notRead') : String(a).replace(/\s/g, '').toUpperCase() === String(b).replace(/\s/g, '').toUpperCase() ? t('same') : t('differs');
+  if (S.route === 'chip') S.pend.read = Object.assign({chip_key: S.pend.read.chip_key}, read);
+  const note = S.route === 'chip' ? null : [t('chipCompare'), [[t('surname'), cmp(c.last, o.last)], [t('given'), cmp(c.first, o.first)], [t('nin'), cmp(c.nin, o.nin)],
+                [t('birth'), cmp(c.dob, o.dob)], [t('expiry'), cmp(c.expiry, o.expiry)]].concat(c.blood ? [[t('blood'), c.blood]] : [])];
+  renderResult({kind: r.intact ? 'ok' : 'bad', title: t(r.intact ? 'chipOk' : 'chipBroken'), sub: r.intact ? t('chipOkSub') : '',
+                img: S.chipPhoto, tag: t('tagChip'), portrait: true, issues: [], read, note,
+                buttons: [[t('toSelfie'), goSelfie], [t('chipRetry'), readChip, true]]});
+};
 function showSelfie(r) {
   const again = () => openCam('selfie');
   if (!r.ok) return renderResult({kind: 'bad', title: t('failed'), sub: r.msg || t('failedSub'), img: null, issues: [], read: {}, buttons: [[t('tryAgain'), again]]});
@@ -665,7 +753,7 @@ async function api(path, body) {
 async function checkPhoto(dataUrl) {
   show('wait');
   const step = S.step, body = {step};
-  if (step === 'back') { body.front = S.front; body.back = dataUrl; } else body.front = dataUrl;
+  if (step === 'back') { body.front = S.front; body.back = dataUrl; } else if (step === 'mrz') body.back = dataUrl; else body.front = dataUrl;
   let r;
   try { r = await api('api/check', body); } catch (e) { if (e.message === 'access code') return; r = {ok: false, msg: e.message}; }
   S.history.push({step, issues: (r.issues || []).map(i => i.code), ms: r.ms});
@@ -675,9 +763,9 @@ async function checkPhoto(dataUrl) {
 function renderResult(o) {
   show('res');
   const b = $('#banner'); b.className = 'banner ' + o.kind;
-  b.querySelector('.dot').textContent = o.kind === 'ok' ? '✓' : '!';
+  b.querySelector('.dot').textContent = o.kind === 'ok' ? '✓' : o.kind === 'info' ? 'i' : '!';
   $('#resTitle').textContent = o.title; $('#resSub').textContent = o.sub || '';
-  const shot = $('.shot'); shot.style.display = o.img ? 'block' : 'none';
+  const shot = $('.shot'); shot.style.display = o.img ? 'block' : 'none'; shot.classList.toggle('portrait', !!o.portrait);
   if (o.img) { $('#shot').src = o.img; $('#shotTag').textContent = o.tag || ''; }
   const body = $('#resBody'); body.innerHTML = '';
   o.issues.forEach(i => {
@@ -728,6 +816,7 @@ function renderResult(o) {
 }
 
 function showResult(step, dataUrl, r) {
+  if (step === 'mrz') { S.back = dataUrl; S.keyResp = r; return keyScreen(); }
   const tag = t(step === 'front' ? 'tagFront' : step === 'back' ? 'tagBack' : 'tagPp');
   if (!r.ok) return renderResult({kind: 'bad', title: t('failed'), sub: r.msg || t('failedSub'), img: dataUrl, tag, issues: [], read: {}, buttons: [[t('tryAgain'), () => openCam(step)]]});
   const issues = r.issues || [];
@@ -783,7 +872,7 @@ const MATCH_KEY = {birth: 'dob', expiry: 'expiry', sex: 'sex', cardNo: 'card_no'
 async function send(issues, read, forced) {
   show('wait');
   try {
-    const r = await api('api/send', {doc: S.doc, step: S.step, front: S.front, back: S.back, selfie: S.selfie, face: S.face, issues, read, forced, history: S.history, consent: S.consent});
+    const r = await api('api/send', {doc: S.doc, step: S.step, front: S.front, back: S.back, selfie: S.selfie, face: S.face, issues, read, forced, history: S.history, consent: S.consent, chip: S.chip || null});
     if (!r.ok) throw new Error(r.msg || 'not saved');
     stopCam();
     $('#doneText').textContent = r.saved === false ? t('sentDemo') : forced ? t('sentForced') : t('sentOk');
